@@ -1,0 +1,16 @@
+<div [ngClass]="index == 0 || index == 3 ? 'text-white bg-dark':'bg-light'"
+  class="mr-md-3 pt-3 px-3 pt-md-5 px-md-5 text-center overflow-hidden">
+  <div class="my-3 py-3">
+    <h2 class="display-5">Another headline</h2>
+    <div class="d-flex flex-row justify-content-center">
+      <div class="p-2">
+        <p class="lead">29M views</p>
+      </div>
+      <div class="p-2">
+        <p class="lead">1 year ago</p>
+      </div>
+    </div>
+  </div>
+  <div [ngClass]="index == 0 || index == 3 ? 'bg-light':'bg-dark'" class="bg-light shadow-sm mx-auto"
+    style="width: 80%; height: 300px; border-radius: 21px 21px 0 0;"></div>
+</div>

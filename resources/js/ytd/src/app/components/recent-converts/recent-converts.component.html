@@ -1,0 +1,7 @@
+<ng-container *ngFor="let convert of converts;let i = index;let isOdd = odd;let isEven = even;">
+  <div *ngIf="isEven" class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
+    <app-recent-convert-item [convert]="convert" [index]="i">
+    </app-recent-convert-item>
+    <app-recent-convert-item [convert]="converts[i+1]" [index]="i+1"></app-recent-convert-item>
+  </div>
+</ng-container>
