@@ -1,5 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -8,6 +9,7 @@ import { AppComponent } from './app.component';
 import { HomeComponent } from './components/home/home.component';
 import { RecentConvertsComponent } from './components/recent-converts/recent-converts.component';
 import { RecentConvertItemComponent } from './components/recent-convert-item/recent-convert-item.component';
+import { ContactComponent } from './components/contact/contact.component';
 
 
 
@@ -17,11 +19,13 @@ import { RecentConvertItemComponent } from './components/recent-convert-item/rec
     HomeComponent,
     RecentConvertsComponent,
     RecentConvertItemComponent,
+    ContactComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    FontAwesomeModule
+    FontAwesomeModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

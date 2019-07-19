@@ -1,0 +1,60 @@
+<div class="container">
+  <div class="py-5 text-center">
+    <h2>Contact me!</h2>
+    <p class="lead">If you have any questions about this project or to ask something else, feel free to fill contact
+      form below !</p>
+  </div>
+  <div class="col-md-9 order-md-1">
+    <h4 class="mb-3"></h4>
+    <form class="needs-validation" novalidate="" [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="firstName" class="required-asterisk">First name</label>
+          <input formControlName="firstName" type="text" [class.is-invalid]="isFieldInvalid('firstName')"
+            placeholder="John" class="form-control" id="firstName" />
+          <div *ngIf="isFieldInvalid('firstName')" [ngSwitch]="true" class="invalid-feedback">
+            <i *ngSwitchCase="contactForm.hasError('required','firstName')">First name is required!</i>
+            <i *ngSwitchCase="contactForm.hasError('minlength','firstName')">First name must be min
+              {{ getFieldErrors('firstName').minlength.requiredLength }} characters! </i>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="lastName" class="required-asterisk">Last name</label>
+          <input formControlName="lastName" type="text" class="form-control" id="lastName" placeholder="Doe"
+            [class.is-invalid]="isFieldInvalid('lastName')">
+          <div *ngIf="isFieldInvalid('lastName')" [ngSwitch]="true" class="invalid-feedback">
+            <i *ngSwitchCase="contactForm.hasError('required','lastName')">Last name is required!</i>
+            <i *ngSwitchCase="contactForm.hasError('minlength','lastName')">Last name must be min
+              {{ getFieldErrors('lastName').minlength.requiredLength }} characters! </i>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="required-asterisk">Email</label>
+        <input formControlName="email" type="email" class="form-control" id="email" placeholder="john.doe@mail.com"
+          [class.is-invalid]="isFieldInvalid('email')">
+        <div *ngIf="isFieldInvalid('email')" [ngSwitch]="true" class="invalid-feedback">
+          <i *ngSwitchCase="contactForm.hasError('required','email')">Email is required!</i>
+          <i *ngSwitchCase="contactForm.hasError('email','email')"> Email must be valid!</i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="message" class="required-asterisk">Message</label>
+        <textarea formControlName="message" class="form-control" id="message" rows="5" placeholder="Hello..."
+          [class.is-invalid]="isFieldInvalid('message')"></textarea>
+        <div *ngIf="isFieldInvalid('message')" [ngSwitch]="true" class="invalid-feedback">
+          <i *ngSwitchCase="contactForm.hasError('required','message')">Message is required!</i>
+          <i *ngSwitchCase="contactForm.hasError('minlength','message')">Message must be min
+            {{ getFieldErrors('message').minlength.requiredLength }} characters! </i>
+        </div>
+      </div>
+
+      <hr class="mb-4">
+      <button class="btn btn-lg btn-block btn-primary-c" [disabled]="!contactForm.valid" type="submit">
+        <fa-icon [icon]="faPaperPlane"></fa-icon> Send message
+      </button>
+    </form>
+  </div>
+</div>
