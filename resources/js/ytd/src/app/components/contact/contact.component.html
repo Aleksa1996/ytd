@@ -32,7 +32,7 @@
 
       <div class="mb-3">
         <label for="email" class="required-asterisk">Email</label>
-        <input formControlName="email" type="email" class="form-control" id="email" placeholder="john.doe@mail.com"
+        <input formControlName="email" type="email" class="form-control" id="email" placeholder="john.doe@gmail.com"
           [class.is-invalid]="isFieldInvalid('email')">
         <div *ngIf="isFieldInvalid('email')" [ngSwitch]="true" class="invalid-feedback">
           <i *ngSwitchCase="contactForm.hasError('required','email')">Email is required!</i>
@@ -42,8 +42,8 @@
 
       <div class="form-group">
         <label for="message" class="required-asterisk">Message</label>
-        <textarea formControlName="message" class="form-control" id="message" rows="5" placeholder="Hello..."
-          [class.is-invalid]="isFieldInvalid('message')"></textarea>
+        <textarea formControlName="message" class="form-control" id="message" rows="5"
+          placeholder="Hello, my name is John..." [class.is-invalid]="isFieldInvalid('message')"></textarea>
         <div *ngIf="isFieldInvalid('message')" [ngSwitch]="true" class="invalid-feedback">
           <i *ngSwitchCase="contactForm.hasError('required','message')">Message is required!</i>
           <i *ngSwitchCase="contactForm.hasError('minlength','message')">Message must be min

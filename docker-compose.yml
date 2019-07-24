@@ -21,6 +21,17 @@ services:
     command: php /var/www/html/artisan swoole:http start
     depends_on:
       - mysql
+      - redis
+
+  swoole-worker:
+    image: "aleksajo/swoole-worker"
+    volumes:
+      - .:/var/www/html
+      - ./.docker/supervisor:/etc/supervisor/conf.d
+    restart: always
+    depends_on:
+      - mysql
+      - redis
 
   node:
     image: "aleksajo/angular"

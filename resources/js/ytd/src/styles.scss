@@ -2,7 +2,9 @@
 
 $primary-color:#ff793f;
 
-// #ff793f
+$secondary-color: #212529;
+$secondary-color-shade: #444d55;
+
 html {
   font-family: 'Comfortaa', cursive;
 
@@ -10,7 +12,7 @@ html {
     font-family: 'Comfortaa', cursive;
 
     .form-control:focus {
-      color: #495057;
+      color: $secondary-color-shade;
       background-color: #fff;
       border-color: #ff9466;
       outline: 0;
