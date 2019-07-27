@@ -22,8 +22,9 @@ class ContactController extends Controller
             'name' => 'required|min:2|max:20',
             'email' => 'required|email',
             'subject' => 'required|min:2',
-            'message' => 'required|min:5'
+            'message' => 'required|min:10|max:250'
         ]);
+
         try {
             Mail::to('aleksa.j.1996@gmail.com')->queue(new ContactForm($data));
             return response()->json(['success' => true], 200);

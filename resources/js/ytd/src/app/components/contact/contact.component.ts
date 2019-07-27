@@ -14,10 +14,10 @@ export class ContactComponent implements OnInit {
   faPaperPlane = faPaperPlane;
 
   public contactForm = this.fb.group({
-    firstName: ['', [Validators.required, Validators.minLength(3)]],
-    lastName: ['', [Validators.required, Validators.minLength(3)]],
+    firstName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(10)]],
+    lastName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(10)]],
     email: ['', [Validators.required, Validators.email]],
-    message: ['', [Validators.required, Validators.minLength(15)]],
+    message: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(250)]],
   });
 
   constructor(private fb: FormBuilder, private contactService: ContactService) { }
