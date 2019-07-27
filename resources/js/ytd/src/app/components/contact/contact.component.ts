@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { FormBuilder, Validators } from '@angular/forms';
+import { ContactService } from 'src/app/services/contact.service';
+import { ContactMessage } from 'src/app/shared/ContactMessage';
 
 @Component({
   selector: 'app-contact',
@@ -18,7 +20,7 @@ export class ContactComponent implements OnInit {
     message: ['', [Validators.required, Validators.minLength(15)]],
   });
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder, private contactService: ContactService) { }
 
   ngOnInit() {
   }
@@ -34,7 +36,9 @@ export class ContactComponent implements OnInit {
   }
 
   public onSubmit() {
-    console.log(this.contactForm.value);
+    const { firstName, lastName, email, message } = this.contactForm.value;
+    const contactMessage = new ContactMessage(firstName + ' ' + lastName, email, message);
+    this.contactService.submit(contactMessage);
   }
 
 }

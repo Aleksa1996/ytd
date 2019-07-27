@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\ContactForm;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
@@ -27,6 +28,7 @@ class ContactController extends Controller
             Mail::to('aleksa.j.1996@gmail.com')->queue(new ContactForm($data));
             return response()->json(['success' => true], 200);
         } catch (\Exception $e) {
+            Log::debug($e->getMessage());
             throw ValidationException::withMessages(['_general_error' => ['Mail cannot be sent now, please try again later!']]);
         }
     }
