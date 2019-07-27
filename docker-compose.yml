@@ -18,7 +18,7 @@ services:
     volumes:
       - .:/var/www/html
     restart: always
-    command: php /var/www/html/artisan swoole:http start
+    command: bash -c "rm -f /var/www/html/storage/logs/swoole_http.pid && php /var/www/html/artisan swoole:http start"
     depends_on:
       - mysql
       - redis
@@ -32,6 +32,16 @@ services:
     depends_on:
       - mysql
       - redis
+
+  swoole-watcher:
+    image: "aleksajo/swoole-watcher"
+    volumes:
+      - '/var/run/docker.sock:/tmp/docker.sock:ro'
+      - './:/var/www/html'
+    restart: always
+    environment:
+      - 'CONTAINER=ytd_swoole_1'
+      - 'VOLUMES=/var/www/html'
 
   node:
     image: "aleksajo/angular"
