@@ -11,6 +11,8 @@ import { ContactMessage } from 'src/app/shared/ContactMessage';
 })
 export class ContactComponent implements OnInit {
 
+  public formSubmitStatus: { message: String, valid: Boolean } = { message: '', valid: false };
+
   faPaperPlane = faPaperPlane;
 
   public contactForm = this.fb.group({
@@ -36,9 +38,31 @@ export class ContactComponent implements OnInit {
   }
 
   public onSubmit() {
+    // get data and store it in object
     const { firstName, lastName, email, message } = this.contactForm.value;
     const contactMessage = new ContactMessage(firstName + ' ' + lastName, email, message);
-    this.contactService.submit(contactMessage);
+
+    // restart error message
+    this.formSubmitStatus = { message: '', valid: false };
+
+    // call api (send contact form message), handle response
+    this.contactService.submit(contactMessage).subscribe(
+      (r) => {
+        this.formSubmitStatus = { message: r.body.message, valid: true };
+        this.contactForm.reset();
+        setTimeout(() => this.formSubmitStatus = { message: '', valid: false }, 4000);
+      },
+      ({ error, status }) => {
+        if (error.error_type == 'general_errors') {
+          if (status == 429) {
+            error.message = 'You already have sent 2 messages in 5 minutes!';
+          }
+          this.formSubmitStatus = { message: error.message, valid: false };
+        } else if (error.error_type == 'form_errors') {
+          error.errors.forEach(({ field, message }) => this.contactForm.get(field).setErrors({ 'api_validation': { message } }));
+        }
+      }
+    );
   }
 
 }

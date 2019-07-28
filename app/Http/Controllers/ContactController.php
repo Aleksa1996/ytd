@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use App\Exceptions\GeneralException;
 
 class ContactController extends Controller
 {
@@ -26,11 +27,11 @@ class ContactController extends Controller
         ]);
 
         try {
-            Mail::to('aleksa.j.1996@gmail.com')->queue(new ContactForm($data));
-            return response()->json(['success' => true], 200);
+            // Mail::to('aleksa.j.1996@gmail.com')->queue(new ContactForm($data));
+            return response()->json(['message' => 'Message successfully sent!'], 200);
         } catch (\Exception $e) {
             Log::debug($e->getMessage());
-            throw ValidationException::withMessages(['_general_error' => ['Mail cannot be sent now, please try again later!']]);
+            throw new GeneralException('Mail cannot be sent now, please try again later!');
         }
     }
 }

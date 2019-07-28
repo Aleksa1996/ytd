@@ -3,11 +3,12 @@
 namespace App\Exceptions;
 
 use Exception;
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-
+use App\Exceptions\GeneralException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
 {
@@ -50,17 +51,33 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        // model not found
         if ($exception instanceof ModelNotFoundException) {
-            return response()->json(['errors' => [['field' => null, 'message' => '404 Not Found.']]], 404);
+            return response()->json(['error_type' => 'general_errors', 'message' => '404 Not Found.'], 404);
         }
 
+        // request validation
         if ($exception instanceof ValidationException) {
             $errorCollection = collect($exception->errors());
             $errorCollection = $errorCollection->map(function ($error, $key) {
-                if ($key == '_general_error') return ['field' => '', 'message' => $error];
                 return ['field' => $key, 'message' => $error[0]];
             });
-            return response()->json(['errors' => $errorCollection->values()], 422);
+            return response()->json(['error_type' => 'form_errors', 'errors' => $errorCollection->values()], 422);
+        }
+
+        // general error messages (custom exception)
+        if ($exception instanceof GeneralException) {
+            return response()->json(['error_type' => 'general_errors', 'message' => $exception->getMessage()], 422);
+        }
+
+        // handling throttle request exception message
+        if ($exception instanceof ThrottleRequestsException) {
+            return response()->json(['error_type' => 'general_errors', 'message' => 'Too many attempts.'], 429);
+        }
+
+        // default JSON response in production
+        if (env('APP_ENV') !== 'local') {
+            return response()->json(['error_type' => 'general_errors', 'message' => $exception->getMessage()], 500);
         }
 
         return parent::render($request, $exception);

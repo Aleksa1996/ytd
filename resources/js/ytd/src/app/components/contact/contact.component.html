@@ -16,6 +16,8 @@
             <i *ngSwitchCase="contactForm.hasError('required','firstName')">First name is required!</i>
             <i *ngSwitchCase="contactForm.hasError('minlength','firstName')">First name must be min
               {{ getFieldErrors('firstName').minlength.requiredLength }} characters! </i>
+            <i *ngSwitchCase="contactForm.hasError('maxlength','firstName')">First name must be max
+              {{ getFieldErrors('message').maxlength.requiredLength }} characters! </i>
           </div>
         </div>
         <div class="col-md-6 mb-3">
@@ -26,6 +28,8 @@
             <i *ngSwitchCase="contactForm.hasError('required','lastName')">Last name is required!</i>
             <i *ngSwitchCase="contactForm.hasError('minlength','lastName')">Last name must be min
               {{ getFieldErrors('lastName').minlength.requiredLength }} characters! </i>
+            <i *ngSwitchCase="contactForm.hasError('maxlength','lastName')">Last name must be max
+              {{ getFieldErrors('message').maxlength.requiredLength }} characters! </i>
           </div>
         </div>
       </div>
@@ -37,6 +41,9 @@
         <div *ngIf="isFieldInvalid('email')" [ngSwitch]="true" class="invalid-feedback">
           <i *ngSwitchCase="contactForm.hasError('required','email')">Email is required!</i>
           <i *ngSwitchCase="contactForm.hasError('email','email')"> Email must be valid!</i>
+          <i *ngSwitchCase="contactForm.hasError('api_validation','email')">
+            {{ getFieldErrors('email').api_validation.message }}
+          </i>
         </div>
       </div>
 
@@ -47,10 +54,20 @@
         <div *ngIf="isFieldInvalid('message')" [ngSwitch]="true" class="invalid-feedback">
           <i *ngSwitchCase="contactForm.hasError('required','message')">Message is required!</i>
           <i *ngSwitchCase="contactForm.hasError('minlength','message')">Message must be min
-            {{ getFieldErrors('message').minlength.requiredLength }} characters! </i>
+            {{ getFieldErrors('message').minlength.requiredLength }} characters!
+          </i>
+          <i *ngSwitchCase="contactForm.hasError('maxlength','message')">Message must be max
+            {{ getFieldErrors('message').maxlength.requiredLength }} characters!
+          </i>
+          <i *ngSwitchCase="contactForm.hasError('api_validation','message')">
+            {{ getFieldErrors('message').api_validation.message }}
+          </i>
         </div>
       </div>
-
+      <div *ngIf="formSubmitStatus.message.length > 0" class="text-center"
+        [ngClass]="{'text-success':formSubmitStatus.valid,'text-danger':!formSubmitStatus.valid}">
+        {{ formSubmitStatus.message }}
+      </div>
       <hr class="mb-4">
       <button class="btn btn-lg btn-block btn-primary-c" [disabled]="!contactForm.valid" type="submit">
         <fa-icon [icon]="faPaperPlane"></fa-icon> Send message

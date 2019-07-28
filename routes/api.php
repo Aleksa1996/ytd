@@ -18,11 +18,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::group(['prefix' => '/v1'], function () {
-    Route::group(['prefix' => '/test'], function () {
 
-        Route::get('/', function () {
-            return 'hello';
-        });
+    Route::group(['prefix' => '/contact'], function () {
+        Route::post('/', 'ContactController@submit')->middleware('throttle:2,5');
+
         // Route::get('/{id}', 'PlayerController@show');
         // Route::post('/', 'PlayerController@store');
         // Route::put('/', 'PlayerController@update');
