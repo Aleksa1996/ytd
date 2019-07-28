@@ -27,7 +27,7 @@ class ContactController extends Controller
         ]);
 
         try {
-            // Mail::to('aleksa.j.1996@gmail.com')->queue(new ContactForm($data));
+            Mail::to('aleksa.j.1996@gmail.com')->queue(new ContactForm($data));
             return response()->json(['message' => 'Message successfully sent!'], 200);
         } catch (\Exception $e) {
             Log::debug($e->getMessage());
