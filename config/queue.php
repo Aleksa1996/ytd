@@ -66,6 +66,9 @@ return [
             'block_for' => null,
         ],
 
+        'swoole' => [
+            'driver' => 'swoole'
+        ],
     ],
 
     /*

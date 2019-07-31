@@ -1558,16 +1558,16 @@
         },
         {
             "name": "swooletw/laravel-swoole",
-            "version": "v2.6.6",
+            "version": "v2.6.63",
             "source": {
                 "type": "git",
                 "url": "https://github.com/swooletw/laravel-swoole.git",
-                "reference": "768465bfa8835975bf924486e82d67ed998cd65a"
+                "reference": "a7874424935e549d38c2f7089cc0f96c8340c30a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/swooletw/laravel-swoole/zipball/768465bfa8835975bf924486e82d67ed998cd65a",
-                "reference": "768465bfa8835975bf924486e82d67ed998cd65a",
+                "url": "https://api.github.com/repos/swooletw/laravel-swoole/zipball/a7874424935e549d38c2f7089cc0f96c8340c30a",
+                "reference": "a7874424935e549d38c2f7089cc0f96c8340c30a",
                 "shasum": ""
             },
             "require": {
@@ -1585,7 +1585,8 @@
                 "php-coveralls/php-coveralls": "^2.1",
                 "php-mock/php-mock": "^2.0",
                 "phpunit/php-code-coverage": "^6.1",
-                "phpunit/phpunit": "^7.5"
+                "phpunit/phpunit": "^7.5",
+                "swoole/ide-helper": "@dev"
             },
             "type": "library",
             "extra": {
@@ -1632,7 +1633,7 @@
                 "server",
                 "swoole"
             ],
-            "time": "2019-04-20T14:35:43+00:00"
+            "time": "2019-07-05T03:20:21+00:00"
         },
         {
             "name": "symfony/console",

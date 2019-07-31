@@ -49,8 +49,8 @@
 
       <div class="form-group">
         <label for="message" class="required-asterisk">Message</label>
-        <textarea formControlName="message" class="form-control" id="message" rows="5"
-          placeholder="Hello, my name is John..." [class.is-invalid]="isFieldInvalid('message')"></textarea>
+        <textarea formControlName="message" class="form-control" id="message" rows="5" placeholder="Hello..."
+          [class.is-invalid]="isFieldInvalid('message')"></textarea>
         <div *ngIf="isFieldInvalid('message')" [ngSwitch]="true" class="invalid-feedback">
           <i *ngSwitchCase="contactForm.hasError('required','message')">Message is required!</i>
           <i *ngSwitchCase="contactForm.hasError('minlength','message')">Message must be min

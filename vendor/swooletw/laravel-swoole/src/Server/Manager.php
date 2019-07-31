@@ -9,6 +9,7 @@ use Swoole\Server\Task;
 use Illuminate\Support\Str;
 use SwooleTW\Http\Helpers\OS;
 use SwooleTW\Http\Server\Sandbox;
+use SwooleTW\Http\Server\PidManager;
 use SwooleTW\Http\Task\SwooleTaskJob;
 use Illuminate\Support\Facades\Facade;
 use SwooleTW\Http\Websocket\Websocket;
@@ -137,7 +138,9 @@ class Manager
     public function onStart()
     {
         $this->setProcessName('master process');
-        $this->createPidFile();
+
+        $server = $this->container->make(Server::class);
+        $this->container->make(PidManager::class)->write($server->master_pid, $server->manager_pid ?? 0);
 
         $this->container->make('events')->dispatch('swoole.start', func_get_args());
     }
@@ -150,6 +153,7 @@ class Manager
     public function onManagerStart()
     {
         $this->setProcessName('manager process');
+
         $this->container->make('events')->dispatch('swoole.managerStart', func_get_args());
     }
 
@@ -261,15 +265,23 @@ class Manager
      * @param string $srcWorkerId
      * @param mixed $data
      */
-    public function onTask($server, $taskId, $srcWorkerId, $data)
+    public function onTask($server, ...$args)
     {
-        $this->container->make('events')->dispatch('swoole.task', func_get_args());
+        // $taskId, $srcWorkerId, $data
+        if ($args[0] instanceof \Swoole\Server\Task && $task = array_shift($args)) {
+            list($taskId, $srcWorkerId, $data) = [$task->id, $task->worker_id, $task->data];
+        } else {
+            list($taskId, $srcWorkerId, $data) = $args;
+        }
+
+        // $this->container->make('events')->dispatch('swoole.task', func_get_args());
+        $this->container->make('events')->dispatch('swoole.task', [$server, $taskId, $srcWorkerId, $data]);
 
         try {
             // push websocket message
             if ($this->isWebsocketPushPayload($data)) {
                 $this->pushMessage($server, $data['data']);
-            // push async task to queue
+                // push async task to queue
             } elseif ($this->isAsyncTaskPayload($data)) {
                 (new SwooleTaskJob($this->container, $server, $data, $taskId, $srcWorkerId))->fire();
             }
@@ -298,7 +310,7 @@ class Manager
      */
     public function onShutdown()
     {
-        $this->removePidFile();
+        $this->container->make(PidManager::class)->delete();
     }
 
     /**
@@ -325,39 +337,6 @@ class Manager
         });
 
         $this->app->alias(Sandbox::class, 'swoole.sandbox');
-    }
-
-    /**
-     * Gets pid file path.
-     *
-     * @return string
-     */
-    protected function getPidFile()
-    {
-        return $this->container->make('config')->get('swoole_http.server.options.pid_file');
-    }
-
-    /**
-     * Create pid file.
-     */
-    protected function createPidFile()
-    {
-        $pidFile = $this->getPidFile();
-        $pid = $this->container->make(Server::class)->master_pid;
-
-        file_put_contents($pidFile, $pid);
-    }
-
-    /**
-     * Remove pid file.
-     */
-    protected function removePidFile()
-    {
-        $pidFile = $this->getPidFile();
-
-        if (file_exists($pidFile)) {
-            unlink($pidFile);
-        }
     }
 
     /**
@@ -441,7 +420,7 @@ class Manager
      */
     protected function normalizeException(Throwable $e)
     {
-        if (! $e instanceof Exception) {
+        if (!$e instanceof Exception) {
             $e = new FatalThrowableError($e);
         }
 

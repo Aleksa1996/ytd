@@ -4,10 +4,11 @@ namespace SwooleTW\Http;
 
 use SwooleTW\Http\Helpers\FW;
 use Illuminate\Queue\QueueManager;
+use SwooleTW\Http\Server\PidManager;
 use Swoole\Http\Server as HttpServer;
 use Illuminate\Support\ServiceProvider;
-use SwooleTW\Http\Server\Facades\Server;
 use Illuminate\Database\DatabaseManager;
+use SwooleTW\Http\Server\Facades\Server;
 use SwooleTW\Http\Coroutine\MySqlConnection;
 use SwooleTW\Http\Commands\HttpServerCommand;
 use Swoole\Websocket\Server as WebsocketServer;
@@ -37,17 +38,39 @@ abstract class HttpServiceProvider extends ServiceProvider
     protected static $server;
 
     /**
+     * Boot the service provider.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->publishFiles();
+        $this->loadConfigs();
+        $this->mergeConfigs();
+        $this->setIsWebsocket();
+
+        $config = $this->app->make('config');
+
+        if ($config->get('swoole_http.websocket.enabled')) {
+            $this->bootWebsocketRoutes();
+        }
+
+        if ($config->get('swoole_http.server.access_log')) {
+            $this->pushAccessLogMiddleware();
+        }
+    }
+
+    /**
      * Register the service provider.
      *
      * @return void
      */
     public function register()
     {
-        $this->mergeConfigs();
-        $this->setIsWebsocket();
         $this->registerServer();
         $this->registerManager();
         $this->registerCommands();
+        $this->registerPidManager();
         $this->registerDatabaseDriver();
         $this->registerSwooleQueueDriver();
     }
@@ -74,27 +97,23 @@ abstract class HttpServiceProvider extends ServiceProvider
     abstract protected function pushAccessLogMiddleware();
 
     /**
-     * Boot the service provider.
-     *
-     * @return void
+     * Publish files of this package.
      */
-    public function boot()
+    protected function publishFiles()
     {
         $this->publishes([
             __DIR__ . '/../config/swoole_http.php' => base_path('config/swoole_http.php'),
             __DIR__ . '/../config/swoole_websocket.php' => base_path('config/swoole_websocket.php'),
             __DIR__ . '/../routes/websocket.php' => base_path('routes/websocket.php'),
         ], 'laravel-swoole');
+    }
 
-        $config = $this->app->make('config');
-
-        if ($config->get('swoole_http.websocket.enabled')) {
-            $this->bootWebsocketRoutes();
-        }
-
-        if ($config->get('swoole_http.server.access_log')) {
-            $this->pushAccessLogMiddleware();
-        }
+    /**
+     * Load configurations.
+     */
+    protected function loadConfigs()
+    {
+        // do nothing
     }
 
     /**
@@ -104,6 +123,20 @@ abstract class HttpServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/swoole_http.php', 'swoole_http');
         $this->mergeConfigFrom(__DIR__ . '/../config/swoole_websocket.php', 'swoole_websocket');
+    }
+
+    /**
+     * Register pid manager.
+     *
+     * @return void
+     */
+    protected function registerPidManager(): void
+    {
+        $this->app->singleton(PidManager::class, function() {
+            return new PidManager(
+                $this->app->make('config')->get('swoole_http.server.options.pid_file')
+            );
+        });
     }
 
     /**
@@ -135,7 +168,7 @@ abstract class HttpServiceProvider extends ServiceProvider
         $host = $config->get('swoole_http.server.host');
         $port = $config->get('swoole_http.server.port');
         $socketType = $config->get('swoole_http.server.socket_type', SWOOLE_SOCK_TCP);
-        $processType = $config->get('swoole.http.server.process_type', SWOOLE_PROCESS);
+        $processType = $config->get('swoole_http.server.process_type', SWOOLE_PROCESS);
 
         static::$server = new $server($host, $port, $processType, $socketType);
     }

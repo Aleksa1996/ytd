@@ -27,6 +27,10 @@ Route::group(['prefix' => '/v1'], function () {
         // Route::put('/', 'PlayerController@update');
         // Route::delete('/', 'PlayerController@destroy');
     });
+
+    Route::group(['prefix' => '/convert'], function () {
+        Route::get('/', 'YoutubeVideoController@store');
+    });
 });
 
 

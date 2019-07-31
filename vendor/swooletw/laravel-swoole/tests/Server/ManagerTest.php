@@ -10,13 +10,14 @@ use SwooleTW\Http\Server\Manager;
 use SwooleTW\Http\Server\Sandbox;
 use SwooleTW\Http\Tests\TestCase;
 use Illuminate\Container\Container;
+use SwooleTW\Http\Websocket\HandShakeHandler;
 use SwooleTW\Http\Websocket\Parser;
+use SwooleTW\Http\Server\PidManager;
 use SwooleTW\Http\Table\SwooleTable;
 use Laravel\Lumen\Exceptions\Handler;
 use Illuminate\Support\Facades\Config;
 use SwooleTW\Http\Websocket\Websocket;
 use SwooleTW\Http\Server\Facades\Server;
-use SwooleTW\Http\Websocket\Facades\Pusher;
 use SwooleTW\Http\Websocket\HandlerContract;
 use SwooleTW\Http\Websocket\Rooms\TableRoom;
 use SwooleTW\Http\Websocket\Rooms\RoomContract;
@@ -47,6 +48,8 @@ class ManagerTest extends TestCase
         'swoole_http.websocket.enabled' => true,
         'swoole_websocket.parser' => SocketIOParser::class,
         'swoole_websocket.handler' => WebsocketHandler::class,
+        'swoole_websocket.handshake.enabled' => true,
+        'swoole_websocket.handshake.handler' => HandShakeHandler::class,
         'swoole_websocket.default' => 'table',
         'swoole_websocket.settings.table' => [
             'room_rows' => 10,
@@ -102,19 +105,18 @@ class ManagerTest extends TestCase
 
     public function testOnStart()
     {
-        $filePutContents = false;
-        $this->mockMethod('file_put_contents', function () use (&$filePutContents) {
-            $filePutContents = true;
-        });
+        $pidManager = m::mock(PidManager::class);
+        $pidManager->shouldReceive('write')->once();
 
         $container = $this->getContainer();
         $container->singleton('events', function () {
             return $this->getEvent('swoole.start');
         });
+        $container->singleton(PidManager::class, function () use ($pidManager) {
+            return $pidManager;
+        });
         $manager = $this->getManager($container);
         $manager->onStart();
-
-        $this->assertTrue($filePutContents);
     }
 
     public function testOnManagerStart()
@@ -307,21 +309,16 @@ class ManagerTest extends TestCase
 
     public function testOnShutdown()
     {
-        $fileExists = false;
-        $this->mockMethod('file_exists', function () use (&$fileExists) {
-            return $fileExists = true;
+        $pidManager = m::mock(PidManager::class);
+        $pidManager->shouldReceive('delete')->once();
+
+        $container = $this->getContainer();
+        $container->singleton(PidManager::class, function () use ($pidManager) {
+            return $pidManager;
         });
 
-        $unlink = false;
-        $this->mockMethod('unlink', function () use (&$unlink) {
-            return $unlink = true;
-        });
-
-        $manager = $this->getManager();
+        $manager = $this->getManager($container);
         $manager->onShutdown();
-
-        $this->assertTrue($fileExists);
-        $this->assertTrue($unlink);
     }
 
     public function testSetParser()
@@ -417,6 +414,72 @@ class ManagerTest extends TestCase
         $manager->setApplication($container);
         $manager->setWebsocketHandler($handler);
         $manager->onOpen(m::mock('server'), $request);
+    }
+
+    public function testOnHandShake()
+    {
+        $request = m::mock(Request::class);
+        $request->shouldReceive('rawcontent')
+                ->once()
+                ->andReturn([]);
+        $request->fd = 1;
+        $request->header['sec-websocket-key'] = 'Bet8DkPFq9ZxvIBvPcNy1A==';
+
+        $response = m::mock(Response::class);
+        $response->shouldReceive('header')->withAnyArgs()->times(4)->andReturnSelf();
+        $response->shouldReceive('status')->with(101)->once()->andReturnSelf();
+        $response->shouldReceive('end')->withAnyArgs()->once()->andReturnSelf();
+
+        $container = $this->getContainer($this->getServer(), $this->getConfig(true));
+        $container->singleton(Websocket::class, function () {
+            $websocket = m::mock(Websocket::class);
+            $websocket->shouldReceive('reset')
+                      ->with(true)
+                      ->once()
+                      ->andReturnSelf();
+            $websocket->shouldReceive('setSender')
+                      ->with(1)
+                      ->once();
+            $websocket->shouldReceive('eventExists')
+                      ->with('connect')
+                      ->once()
+                      ->andReturn(true);
+            $websocket->shouldReceive('setContainer')
+                      ->with(m::type(Container::class))
+                      ->once();
+            $websocket->shouldReceive('call')
+                      ->with('connect', m::type('Illuminate\Http\Request'))
+                      ->once();
+
+            return $websocket;
+        });
+        $container->singleton(Sandbox::class, function () {
+            $sandbox = m::mock(Sandbox::class);
+            $sandbox->shouldReceive('setRequest')
+                    ->with(m::type('Illuminate\Http\Request'))
+                    ->once();
+            $sandbox->shouldReceive('enable')
+                    ->once();
+            $sandbox->shouldReceive('disable')
+                    ->once();
+            $sandbox->shouldReceive('getApplication')
+                    ->once()
+                    ->andReturn(m::mock(Container::class));
+
+            return $sandbox;
+        });
+
+        $container->alias(Sandbox::class, 'swoole.sandbox');
+
+        $handler = m::mock(HandlerContract::class);
+        $handler->shouldReceive('onOpen')
+                ->with(1, m::type('Illuminate\Http\Request'))
+                ->andReturn(true);
+
+        $manager = $this->getWebsocketManager();
+        $manager->setApplication($container);
+        $manager->setWebsocketHandler($handler);
+        $manager->onHandShake($request, $response);
     }
 
     public function testOnMessage()

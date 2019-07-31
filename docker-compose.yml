@@ -33,16 +33,6 @@ services:
       - mysql
       - redis
 
-  swoole-watcher:
-    image: "aleksajo/swoole-watcher"
-    volumes:
-      - '/var/run/docker.sock:/tmp/docker.sock:ro'
-      - './:/var/www/html'
-    restart: always
-    environment:
-      - 'CONTAINER=ytd_swoole_1'
-      - 'VOLUMES=/var/www/html'
-
   node:
     image: "aleksajo/angular"
     ports:
@@ -65,3 +55,19 @@ services:
   redis:
     image: "redis:5.0"
     restart: always
+
+  swoole-watcher:
+    image: "aleksajo/swoole-watcher"
+    volumes:
+      - '/var/run/docker.sock:/tmp/docker.sock:ro'
+      - './:/var/www/html'
+    restart: always
+    environment:
+      - 'CONTAINER=ytd_swoole_1'
+      - 'VOLUMES=/var/www/html'
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8090:8080

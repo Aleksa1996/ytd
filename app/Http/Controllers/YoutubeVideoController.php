@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\YoutubeVideo;
+use Illuminate\Http\Request;
+
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
+use App\Classes\YoutubeVideoUtils;
+use App\Exceptions\GeneralException;
+use App\Jobs\ProcessYoutubeVideo;
+
+class YoutubeVideoController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        // validate request
+        $data = $request->validate([
+            'video_id' => 'required|string', // Youtube video ID
+            'video_format' => [Rule::in([ // The MIME type of the video. e.g. video/mp4, video/webm, etc.
+                'application/vnd.apple.mpegurl',
+                'application/x-mpegurl', 'video/3gpp', 'video/mp4', 'video/mpeg',
+                'video/ogg', 'video/quicktime', 'video/webm', 'video/x-m4v',
+                'video/ms-asf', 'video/x-ms-wmv', 'video/x-msvideo'
+            ])]
+        ]);
+
+        // if video format is not selected then video/mp4 is by default
+        $data['video_format'] = $data['video_format'] ?? 'video/mp4';
+
+        try {
+            // get video info by video id
+            $info = YoutubeVideoUtils::getVideoInfo($data['video_id']);
+
+            // get player response and decode it
+            $playerResponse = json_decode($info['player_response'], true);
+
+            // save video info in db
+            $youtubeVideo = new YoutubeVideo();
+            $youtubeVideo->videoId = $playerResponse['videoDetails']['videoId'];
+            $youtubeVideo->title = $playerResponse['videoDetails']['title'];
+            $youtubeVideo->lengthSeconds = $playerResponse['videoDetails']['lengthSeconds'];
+            $youtubeVideo->thumbnail = collect($playerResponse['videoDetails']['thumbnail']['thumbnails'])->pop()['url'];
+            $youtubeVideo->save();
+
+            // queue youtube video processing in queue job
+            ProcessYoutubeVideo::dispatch($youtubeVideo, $info);
+
+            return response()->json($youtubeVideo, 200);
+        } catch (\Exception $e) {
+            Log::debug($e->getMessage());
+            throw new GeneralException('Failed to get video info!');
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\YoutubeVideo  $youtubeVideo
+     * @return \Illuminate\Http\Response
+     */
+    public function show(YoutubeVideo $youtubeVideo)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\YoutubeVideo  $youtubeVideo
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, YoutubeVideo $youtubeVideo)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\YoutubeVideo  $youtubeVideo
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(YoutubeVideo $youtubeVideo)
+    {
+        //
+    }
+}
