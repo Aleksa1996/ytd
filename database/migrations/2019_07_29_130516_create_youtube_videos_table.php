@@ -20,6 +20,7 @@ class CreateYoutubeVideosTable extends Migration
             $table->text('title');
             $table->text('lengthSeconds');
             $table->text('thumbnail');
+            $table->text('streams');
 
             $table->timestamps();
         });

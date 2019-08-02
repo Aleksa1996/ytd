@@ -16,17 +16,15 @@ class ProcessYoutubeVideo implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $youtubeVideo;
-    protected $info;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(YoutubeVideo $youtubeVideo, $info)
+    public function __construct(YoutubeVideo $youtubeVideo)
     {
         $this->youtubeVideo = $youtubeVideo;
-        $this->info = $info;
     }
 
     /**
@@ -36,36 +34,41 @@ class ProcessYoutubeVideo implements ShouldQueue
      */
     public function handle()
     {
-        $streams = explode(',', $this->info['url_encoded_fmt_stream_map']);
+        // 18 sec for first test
 
-        // return response()->json($info, 200);
-        // return response()->json(json_decode($info['player_response']), 200);
-
-        // strimova ima vise
-        // videti da se zabrane ogromni videi
-
-        // CfihYWRWRTQ // vevo - ciphered
+        // CfihYWRWRTQ // john newman - ciphered
         // omjnFuAd_sw // mudja - not ciphered
+        // 6-g0jxauBJg // VEVO - MULTIPLE STREAMS
 
-        $urls = [];
-        foreach ($streams as $stream) {
-            // decode the stream
-            parse_str($stream, $parsedStream);
-            // return response()->json($p, 200);
+        // break video stream map string into pieces
+        $videoStreams = explode(',', $this->youtubeVideo->streams);
+        $that = $this;
 
-            // get signature if video is protected with cipher
-            $signature = '';
-            if (isset($parsedStream['s'])) {
-                $playerScript = YoutubeVideoUtils::getPlayerScriptByVideoId($this->youtubeVideo->videoId);
-                $decipher = YoutubeVideoUtils::extractDecipher($playerScript['content']);
-                $signature = YoutubeVideoUtils::generateSignature($decipher['decipherPatterns'], $decipher['deciphers'], $parsedStream['s']);
-                $signature = $parsedStream['sp'] . '=' . $signature;
-            }
+        Storage::makeDirectory('/public/youtube_videos/' . $this->youtubeVideo->videoId);
 
-            // store generated url
-            $urls[] = $parsedStream['url'] . '&asv=3&el=detailpage&hl=en_US&' . $signature;
+        foreach ($videoStreams as $videoStreamIndex => $videoStream) {
+
+            go(function () use ($that, $videoStreamIndex, $videoStream) {
+                // parse the stream
+                parse_str($videoStream, $parsedStream);
+
+                // get signature if video is protected with cipher
+                $signature = '';
+                if (isset($parsedStream['s'])) {
+                    $playerScript = YoutubeVideoUtils::getPlayerScriptByVideoId($that->youtubeVideo->videoId);
+                    $decipher = YoutubeVideoUtils::extractDecipher($playerScript['content']);
+                    $signature = YoutubeVideoUtils::generateSignature($decipher['decipherPatterns'], $decipher['deciphers'], $parsedStream['s']);
+                    $signature = ($parsedStream['sp'] ?? 'sig') . '=' . $signature;
+                }
+
+                $downloadUrl = $parsedStream['url'] . '&asv=3&el=detailpage&hl=en_US&' . $signature;
+                $saveToPath = storage_path('app/public/youtube_videos/') . $that->youtubeVideo->videoId . '/' . $videoStreamIndex . '_video.mp4';
+
+                YoutubeVideoUtils::makeDownloadVideoRequest($downloadUrl, $saveToPath);
+            });
+
+            // wait for all coroutines to finish
+            \Swoole\Event::wait();
         }
-
-        return YoutubeVideoUtils::makeDownloadVideoRequest($urls[0], $this->youtubeVideo->videoId);
     }
 }

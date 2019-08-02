@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\YoutubeVideo;
-use Illuminate\Http\Request;
-
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
+use App\Jobs\ProcessYoutubeVideo;
 use App\Classes\YoutubeVideoUtils;
 use App\Exceptions\GeneralException;
-use App\Jobs\ProcessYoutubeVideo;
+
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class YoutubeVideoController extends Controller
 {
@@ -47,10 +47,22 @@ class YoutubeVideoController extends Controller
 
         try {
             // get video info by video id
-            $info = YoutubeVideoUtils::getVideoInfo($data['video_id']);
+            $youtubeVideoInfo = YoutubeVideoUtils::getVideoInfo($data['video_id']);
 
-            // get player response and decode it
-            $playerResponse = json_decode($info['player_response'], true);
+            if (empty($youtubeVideoInfo
+                || !isset($youtubeVideoInfo['player_response'])
+                || !isset($youtubeVideoInfo['url_encoded_fmt_stream_map'])
+                || empty($youtubeVideoInfo['url_encoded_fmt_stream_map']))) {
+                throw new \Exception('Failed to get video info!');
+            }
+
+            // get player response in json format and decode it
+            $playerResponse = json_decode($youtubeVideoInfo['player_response'], true);
+
+            // check if we corretcly decoded player response
+            if ($playerResponse === null && json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Failed to get video info!');
+            }
 
             // save video info in db
             $youtubeVideo = new YoutubeVideo();
@@ -58,10 +70,11 @@ class YoutubeVideoController extends Controller
             $youtubeVideo->title = $playerResponse['videoDetails']['title'];
             $youtubeVideo->lengthSeconds = $playerResponse['videoDetails']['lengthSeconds'];
             $youtubeVideo->thumbnail = collect($playerResponse['videoDetails']['thumbnail']['thumbnails'])->pop()['url'];
+            $youtubeVideo->streams = $youtubeVideoInfo['url_encoded_fmt_stream_map'];
             $youtubeVideo->save();
 
             // queue youtube video processing in queue job
-            ProcessYoutubeVideo::dispatch($youtubeVideo, $info);
+            ProcessYoutubeVideo::dispatch($youtubeVideo);
 
             return response()->json($youtubeVideo, 200);
         } catch (\Exception $e) {

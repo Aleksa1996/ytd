@@ -265,17 +265,9 @@ class Manager
      * @param string $srcWorkerId
      * @param mixed $data
      */
-    public function onTask($server, ...$args)
+    public function onTask($server, $taskId, $srcWorkerId, $data)
     {
-        // $taskId, $srcWorkerId, $data
-        if ($args[0] instanceof \Swoole\Server\Task && $task = array_shift($args)) {
-            list($taskId, $srcWorkerId, $data) = [$task->id, $task->worker_id, $task->data];
-        } else {
-            list($taskId, $srcWorkerId, $data) = $args;
-        }
-
-        // $this->container->make('events')->dispatch('swoole.task', func_get_args());
-        $this->container->make('events')->dispatch('swoole.task', [$server, $taskId, $srcWorkerId, $data]);
+        $this->container->make('events')->dispatch('swoole.task', func_get_args());
 
         try {
             // push websocket message

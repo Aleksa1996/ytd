@@ -2,7 +2,6 @@
 
 namespace App\Classes;
 
-use Illuminate\Support\Facades\Storage;
 use \Swoole\Coroutine\Http\Client as SwooleHttpClient;
 
 class YoutubeVideoUtils
@@ -12,6 +11,11 @@ class YoutubeVideoUtils
     public static function getVideoInfo($videoId)
     {
         $videoInfo = self::makeGetRequest(self::$videoInfoUrl . $videoId);
+
+        if (empty($videoInfo)) {
+            return false;
+        }
+
         parse_str($videoInfo, $parsedVideoInfo);
         return $parsedVideoInfo;
     }
@@ -167,27 +171,23 @@ class YoutubeVideoUtils
         return false;
     }
 
-    public static function makeDownloadVideoRequest($url, $path)
+    public static function makeDownloadVideoRequest($downloadUrl, $saveToPath)
     {
         // parse url
-        $parsedUrl = parse_url($url);
+        $parsedDownloadUrl = parse_url($downloadUrl);
 
-        // define file path
-        $videoLocalPath = 'public/youtube_videos/' . $path;
-        $videoRemotePath = '/' . ($parsedUrl['path'] ?? '') . '?' . ($parsedUrl['query'] ?? '');
-
-        Storage::makeDirectory($videoLocalPath);
+        // redefine remote file path
+        $downloadUrlWithoutHost = '/' . ($parsedDownloadUrl['path'] ?? '') . '?' . ($parsedDownloadUrl['query'] ?? '');
 
         // setup http client
-        $cli = new SwooleHttpClient($parsedUrl['host'], 443, true);
+        $cli = new SwooleHttpClient($parsedDownloadUrl['host'], 443, true);
         $cli->set(['timeout' => -1]);
         $cli->setHeaders([
-            'Host' => $parsedUrl['host']
+            'Host' => $parsedDownloadUrl['host']
         ]);
 
-        $cli->download($videoRemotePath, \storage_path('app/' . $videoLocalPath) . '/video.mp4');
+        $cli->download($downloadUrlWithoutHost, $saveToPath);
 
-        return (array) $cli;
         if ((int) $cli->statusCode == 200) {
             return true;
         }
