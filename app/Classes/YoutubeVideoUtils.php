@@ -183,10 +183,15 @@ class YoutubeVideoUtils
         $cli = new SwooleHttpClient($parsedDownloadUrl['host'], 443, true);
         $cli->set(['timeout' => -1]);
         $cli->setHeaders([
-            'Host' => $parsedDownloadUrl['host']
+            'Host' => $parsedDownloadUrl['host'],
+            'Accept-Encoding' => 'gzip',
+            'User-Agent' => 'Chrome/49.0.2587.3',
         ]);
 
+        $start = microtime(true);
+        echo '[ALL_DOWNLOADS_START]' . ($start) . "\n";
         $cli->download($downloadUrlWithoutHost, $saveToPath);
+        echo '[ALL_DOWNLOADS_END]' . (microtime(true) - $start) . "\n";
 
         if ((int) $cli->statusCode == 200) {
             return true;
@@ -194,4 +199,36 @@ class YoutubeVideoUtils
 
         return false;
     }
+
+    // public static function makeGetRequest($url)
+    // {
+    //     $parsedUrl = parse_url($url);
+
+    //     $success = \file_get_contents($url);
+    //     if ($success) {
+    //         return $success;
+    //     }
+
+    //     return false;
+    // }
+
+    // public static function makeDownloadVideoRequest($downloadUrl, $saveToPath)
+    // {
+    //     // parse url
+    //     $parsedDownloadUrl = parse_url($downloadUrl);
+
+    //     $start = microtime(true);
+    //     echo '[ALL_DOWNLOADS_START]' . ($start) . "\n";
+
+    //     $video = fopen($downloadUrl, 'r'); //the video
+    //     $file = fopen($saveToPath, 'w');
+
+    //     stream_copy_to_stream($video, $file); //copy it to the file
+    //     fclose($video);
+    //     fclose($file);
+
+    //     echo '[ALL_DOWNLOADS_END]' . (microtime(true) - $start) . "\n";
+
+    //     return true;
+    // }
 }

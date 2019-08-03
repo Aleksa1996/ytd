@@ -44,7 +44,9 @@ class ProcessYoutubeVideo implements ShouldQueue
         $videoStreams = explode(',', $this->youtubeVideo->streams);
         $that = $this;
 
+        $start = \microtime(true);
         Storage::makeDirectory('/public/youtube_videos/' . $this->youtubeVideo->videoId);
+        echo '[CREATING_DIR]' . (microtime(true) - $start) . "\n";
 
         foreach ($videoStreams as $videoStreamIndex => $videoStream) {
 
@@ -66,9 +68,9 @@ class ProcessYoutubeVideo implements ShouldQueue
 
                 YoutubeVideoUtils::makeDownloadVideoRequest($downloadUrl, $saveToPath);
             });
-
-            // wait for all coroutines to finish
-            \Swoole\Event::wait();
         }
+
+        // wait for all coroutines to finish
+        \Swoole\Event::wait();
     }
 }
