@@ -69,7 +69,7 @@ services:
       - "./:/var/www/html"
     restart: always
     environment:
-      - "CONTAINER=ytd_swoole_1"
+      - "CONTAINER=ytd_swoole_1;ytd_swoole-worker_1"
       - "VOLUMES=/var/www/html"
 
   adminer:
