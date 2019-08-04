@@ -6,6 +6,7 @@ use App\YoutubeVideo;
 use App\Jobs\ProcessYoutubeVideo;
 use App\Classes\YoutubeVideoUtils;
 use App\Exceptions\GeneralException;
+use App\Http\Resources\YoutubeVideo as YoutubeVideoResource;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -76,7 +77,7 @@ class YoutubeVideoController extends Controller
             // queue youtube video processing in queue job
             ProcessYoutubeVideo::dispatch($youtubeVideo);
 
-            return response()->json($youtubeVideo, 200);
+            return response()->json(new YoutubeVideoResource($youtubeVideo), 201);
         } catch (\Exception $e) {
             Log::debug($e->getMessage());
             throw new GeneralException('Failed to get video info!');

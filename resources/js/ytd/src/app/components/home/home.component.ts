@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { Validators, FormBuilder } from '@angular/forms';
+import { YoutubevideoService } from 'src/app/services/youtubevideo.service';
+import { YoutubeVideo } from 'src/app/shared/YoutubeVideo';
 
 @Component({
   selector: 'app-home',
@@ -11,13 +13,22 @@ export class HomeComponent implements OnInit {
 
   faSyncAlt = faSyncAlt;
 
-  constructor(private fb: FormBuilder) { }
+  public youtubeVideo: YoutubeVideo;
+
+  constructor(private fb: FormBuilder, private youtubevideoService: YoutubevideoService) { }
 
   ngOnInit() {
   }
 
   public convertForm = this.fb.group({
-    link: ['', [Validators.required, Validators.minLength(3)]]
+    link: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.pattern('^https:\/\/(www\.youtube\.com\/watch\\?v=(.)+|youtu.be\/(.)+)$')
+      ]
+    ]
   });
 
   public isFieldInvalid(fieldName: string) {
@@ -31,9 +42,17 @@ export class HomeComponent implements OnInit {
   }
 
   public onSubmit() {
-    // get data and store it in object
-    // const { firstName, lastName, email, message } = this.convertForm.value;
-    console.log(this.convertForm.value);
+    const { link } = this.convertForm.value;
+
+    this.youtubevideoService.submit(link).subscribe(
+      (r) => {
+        this.youtubeVideo = r.body;
+        console.log(r);
+      },
+      ({ error, status }) => {
+
+      }
+    );
   }
 
 }
