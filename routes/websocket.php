@@ -3,6 +3,7 @@
 
 use Illuminate\Http\Request;
 use SwooleTW\Http\Websocket\Facades\Websocket;
+use Illuminate\Support\Facades\Log;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,5 +23,6 @@ Websocket::on('disconnect', function ($websocket) {
 });
 
 Websocket::on('example', function ($websocket, $data) {
-    $websocket->emit('message', $data);
+    // $websocket->emit('message', ['message' => 'abu dhabi !!!']);
+    Log::debug('socket connection from laravel queue worker, Payload: ' . json_encode($data));
 });

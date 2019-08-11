@@ -171,64 +171,70 @@ class YoutubeVideoUtils
         return false;
     }
 
-    public static function makeDownloadVideoRequest($downloadUrl, $saveToPath)
+    public static function makeDownloadVideoRequest($downloadUrl, $saveToPath, $progressCallback = null)
     {
-        // parse url
-        $parsedDownloadUrl = parse_url($downloadUrl);
-
-        // redefine remote file path
-        $downloadUrlWithoutHost = '/' . ($parsedDownloadUrl['path'] ?? '') . '?' . ($parsedDownloadUrl['query'] ?? '');
-
-        // setup http client
-        $cli = new SwooleHttpClient($parsedDownloadUrl['host'], 443, true);
-        $cli->set(['timeout' => -1]);
-        $cli->setHeaders([
-            'Host' => $parsedDownloadUrl['host'],
-            'Accept-Encoding' => 'gzip',
-            'User-Agent' => 'Chrome/49.0.2587.3',
-        ]);
-
+        // start to measure
         $start = microtime(true);
-        echo '[ALL_DOWNLOADS_START]' . ($start) . "\n";
-        $cli->download($downloadUrlWithoutHost, $saveToPath);
-        echo '[ALL_DOWNLOADS_END]' . (microtime(true) - $start) . "\n";
 
-        if ((int) $cli->statusCode == 200) {
-            return true;
+        // log message
+        echo '[DOWNLOAD_START]' . ($start) . "\n";
+
+        // open descriptor for file where we save video
+        $fd = fopen($saveToPath, 'w+');
+        // init curl
+        $ch = curl_init($downloadUrl);
+        // set request timeout
+        curl_setopt($ch, CURLOPT_TIMEOUT, 50);
+        // assign response to file
+        curl_setopt($ch, CURLOPT_FILE, $fd);
+        // follow redirects
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
+        // calculate download proggress
+        $previousPercent = 0;
+        if (is_callable($progressCallback)) {
+            // required for progress to work
+            curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+
+            // bind callback to curl
+            curl_setopt($ch, CURLOPT_PROGRESSFUNCTION, function ($resource, $downloadSize, $downloaded, $uploadSize, $uploaded) use (&$previousPercent, $progressCallback) {
+                if ($downloaded > 0) {
+                    $percent = (int) (($downloaded / $downloadSize) * 100);
+                    if ($percent > 1 && $previousPercent < $percent && $percent % 5 == 0) {
+                        $progressCallback($percent, $downloadSize, $downloaded, $uploadSize, $uploaded);
+                    }
+                    $previousPercent = $percent;
+                }
+            });
         }
 
-        return false;
+        // execute and close curl
+        curl_exec($ch);
+        curl_close($ch);
+
+        // close file descriptor for writing
+        fclose($fd);
+
+        // log time when we complete download
+        echo '[DOWNLOAD_END]' . (microtime(true) - $start) . "\n";
+
+        return true;
     }
 
-    // public static function makeGetRequest($url)
-    // {
-    //     $parsedUrl = parse_url($url);
+    public static function convertVideoToMp3($videoPath)
+    {
+        // escape video path
+        $escapedVideoPath = escapeshellarg($videoPath);
 
-    //     $success = \file_get_contents($url);
-    //     if ($success) {
-    //         return $success;
-    //     }
+        // create process
+        $process = new \Symfony\Component\Process\Process("ffmpeg -i {$escapedVideoPath} -f mp3 -ab 192000 -vn {$escapedVideoPath}.mp3");
 
-    //     return false;
-    // }
+        // start process
+        $process->start();
 
-    // public static function makeDownloadVideoRequest($downloadUrl, $saveToPath)
-    // {
-    //     // parse url
-    //     $parsedDownloadUrl = parse_url($downloadUrl);
-
-    //     $start = microtime(true);
-    //     echo '[ALL_DOWNLOADS_START]' . ($start) . "\n";
-
-    //     $video = fopen($downloadUrl, 'r'); //the video
-    //     $file = fopen($saveToPath, 'w');
-
-    //     stream_copy_to_stream($video, $file); //copy it to the file
-    //     fclose($video);
-    //     fclose($file);
-
-    //     echo '[ALL_DOWNLOADS_END]' . (microtime(true) - $start) . "\n";
-
-    //     return true;
-    // }
+        // get output from ffmpeg
+        foreach ($process as $type => $data) {
+            echo $data . "\n";
+        }
+    }
 }
