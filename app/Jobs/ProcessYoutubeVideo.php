@@ -3,14 +3,15 @@
 namespace App\Jobs;
 
 use App\YoutubeVideo;
+use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
+use App\Classes\WebsocketClient;
 use App\Classes\YoutubeVideoUtils;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use App\Classes\WebsocketClient;
 
 class ProcessYoutubeVideo implements ShouldQueue
 {
@@ -43,7 +44,7 @@ class ProcessYoutubeVideo implements ShouldQueue
         $start = \microtime(true);
 
         // create directory for video
-        Storage::makeDirectory('/public/youtube_videos/' . $this->youtubeVideo->videoId);
+        Storage::makeDirectory('/public/converts/' . $this->youtubeVideo->videoId);
 
         // echo log (time used to create directory)
         echo '[CREATING_DIR]' . (microtime(true) - $start) . "\n";
@@ -62,6 +63,16 @@ class ProcessYoutubeVideo implements ShouldQueue
         parse_str($videoStream, $parsedStream);
 
         go(function () use ($that, $parsedStream) {
+            // init websocket connection
+            $websocketClient = new WebsocketClient('swoole', 1215);
+
+            // inform user that we are starting process
+            $websocketClient->push('VIDEO_PROCESSING_PROGRESS_B', [
+                'progress_type' => 'preparation',
+                'progress' => -1,
+                'for_fd' => $that->youtubeVideo->for_fd
+            ]);
+
             // get signature if video is protected with cipher
             $signature = '';
             if (isset($parsedStream['s'])) {
@@ -73,17 +84,36 @@ class ProcessYoutubeVideo implements ShouldQueue
 
             // generate download and local path
             $downloadUrl = $parsedStream['url'] . '&asv=3&el=detailpage&hl=en_US&' . $signature;
-            $saveToPath = storage_path('app/public/youtube_videos/') . $that->youtubeVideo->videoId . '/' . $this->youtubeVideo->id . '_video.mp4';
-
-            // init websocket connection
-            $websocketClient = new WebsocketClient('swoole', 1215);
+            $fileName = $this->youtubeVideo->id . '-' . Str::slug($this->youtubeVideo->title);
+            $videoPath = storage_path('app/public/converts/') . $that->youtubeVideo->videoId . '/' . $fileName . '.mp4';
+            $mp3Path = storage_path('app/public/converts/') . $that->youtubeVideo->videoId . '/' . $fileName . '.mp3';
 
             // download video
-            YoutubeVideoUtils::makeDownloadVideoRequest($downloadUrl, $saveToPath, function ($percentage) use ($websocketClient) {
-                $websocketClient->push('example', ['downloaded' => $percentage]);
+            YoutubeVideoUtils::makeDownloadVideoRequest($downloadUrl, $videoPath, function ($percentage) use ($websocketClient, $that) {
+                // inform user that we are starting to download video
+                $websocketClient->push('VIDEO_PROCESSING_PROGRESS_B', [
+                    'progress_type' => 'video_download',
+                    'progress' => $percentage,
+                    'for_fd' => $that->youtubeVideo->for_fd
+                ]);
             });
+
             // convert video to mp3
-            YoutubeVideoUtils::convertVideoToMp3($saveToPath);
+            YoutubeVideoUtils::convertVideoToMp3($videoPath, $mp3Path, function ($percentage) use ($websocketClient, $that) {
+                // inform user that we are converting to download video
+                $websocketClient->push('VIDEO_PROCESSING_PROGRESS_B', [
+                    'progress_type' => 'video_convert',
+                    'progress' => $percentage,
+                    'for_fd' => $that->youtubeVideo->for_fd
+                ]);
+            });
+
+            $websocketClient->push('VIDEO_PROCESSING_PROGRESS_B', [
+                'progress_type' => 'video_finished',
+                'link' => asset('/static/' . $this->youtubeVideo->videoId . '/' . $fileName . '.mp3'),
+                'file' =>  $fileName . '.mp3',
+                'for_fd' => $that->youtubeVideo->for_fd
+            ]);
         });
 
         \Swoole\Event::wait();

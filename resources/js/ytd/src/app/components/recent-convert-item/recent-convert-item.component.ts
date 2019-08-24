@@ -9,7 +9,7 @@ import { Convert } from 'src/app/shared/Convert';
 export class RecentConvertItemComponent implements OnInit {
 
   @Input() convert: Convert;
-  @Input() index: BigInteger;
+  @Input() index: number;
 
   constructor() { }
 

@@ -29,7 +29,7 @@ Route::group(['prefix' => '/v1'], function () {
     });
 
     Route::group(['prefix' => '/convert'], function () {
-        Route::get('/', 'YoutubeVideoController@store');
+        Route::post('/', 'YoutubeVideoController@store');
     });
 });
 

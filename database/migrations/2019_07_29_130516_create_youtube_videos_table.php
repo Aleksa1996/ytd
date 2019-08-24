@@ -21,6 +21,7 @@ class CreateYoutubeVideosTable extends Migration
             $table->text('lengthSeconds');
             $table->text('thumbnail');
             $table->text('streams');
+            $table->integer('for_fd');
 
             $table->timestamps();
         });

@@ -11,6 +11,7 @@ import { HomeComponent } from './components/home/home.component';
 import { RecentConvertsComponent } from './components/recent-converts/recent-converts.component';
 import { RecentConvertItemComponent } from './components/recent-convert-item/recent-convert-item.component';
 import { ContactComponent } from './components/contact/contact.component';
+import { NotFoundComponent } from './components/not-found/not-found.component';
 
 
 
@@ -21,9 +22,10 @@ import { ContactComponent } from './components/contact/contact.component';
     RecentConvertsComponent,
     RecentConvertItemComponent,
     ContactComponent,
+    NotFoundComponent
   ],
   imports: [
-    BrowserModule,
+    BrowserModule.withServerTransition({ appId: 'serverApp' }),
     HttpClientModule,
     AppRoutingModule,
     FontAwesomeModule,

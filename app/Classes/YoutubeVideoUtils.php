@@ -2,6 +2,7 @@
 
 namespace App\Classes;
 
+use Illuminate\Support\Carbon;
 use \Swoole\Coroutine\Http\Client as SwooleHttpClient;
 
 class YoutubeVideoUtils
@@ -221,20 +222,65 @@ class YoutubeVideoUtils
         return true;
     }
 
-    public static function convertVideoToMp3($videoPath)
+    public static function convertVideoToMp3($videoPath, $mp3Path, $progressCallback = null)
     {
         // escape video path
         $escapedVideoPath = escapeshellarg($videoPath);
+        $escapedMp3Path = escapeshellarg($mp3Path);
+
 
         // create process
-        $process = new \Symfony\Component\Process\Process("ffmpeg -i {$escapedVideoPath} -f mp3 -ab 192000 -vn {$escapedVideoPath}.mp3");
+        $process = new \Symfony\Component\Process\Process("ffmpeg -i {$escapedVideoPath} -f mp3 -ab 192000 -vn {$escapedMp3Path}");
 
         // start process
         $process->start();
 
-        // get output from ffmpeg
-        foreach ($process as $type => $data) {
-            echo $data . "\n";
+        if (is_callable($progressCallback)) {
+
+            // store whole output
+            $output = '';
+
+            // get output from ffmpeg
+            foreach ($process as $type => $o) {
+                // store whole output to variable
+                $output .= $o;
+
+                // get duration from output
+                preg_match('/Duration: (.*?), start:/', $output, $matches);
+
+                // store raw duration in variable
+                $rawDuration = $matches[1] ?? '';
+
+                // continue if we dont have duration
+                if (empty($rawDuration)) continue;
+
+                // parse raw duration
+                $duration = Carbon::parse($rawDuration);
+                $duration = ($duration->hour * 60 * 60) + ($duration->minute * 60) + $duration->second;
+
+                // get current time
+                $matches = [];
+                preg_match_all("/time=(.*?) bitrate/", $output, $matches);
+                $lastCurrentTime = array_pop($matches);
+
+                // this is needed if there is more than one match
+                if (is_array($lastCurrentTime)) {
+                    $lastCurrentTime = array_pop($lastCurrentTime);
+                }
+
+                // continue if we dont have current time
+                if (empty($lastCurrentTime)) continue;
+
+                // parse raw current time
+                $currentTime = Carbon::parse($lastCurrentTime);
+                $currentTime = ($currentTime->hour * 60 * 60) + ($currentTime->minute * 60) + $currentTime->second;
+
+                // calulate progress and pass it to callback
+                if (!empty($duration)) {
+                    $percentage = (int) (($currentTime / $duration) * 100);
+                    $progressCallback($percentage);
+                }
+            }
         }
     }
 }

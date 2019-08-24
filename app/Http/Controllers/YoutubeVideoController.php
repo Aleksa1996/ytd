@@ -40,7 +40,8 @@ class YoutubeVideoController extends Controller
                 'application/x-mpegurl', 'video/3gpp', 'video/mp4', 'video/mpeg',
                 'video/ogg', 'video/quicktime', 'video/webm', 'video/x-m4v',
                 'video/ms-asf', 'video/x-ms-wmv', 'video/x-msvideo'
-            ])]
+            ])],
+            'fd' => 'required|numeric'
         ]);
 
         // if video format is not selected then video/mp4 is by default
@@ -72,6 +73,7 @@ class YoutubeVideoController extends Controller
             $youtubeVideo->lengthSeconds = $playerResponse['videoDetails']['lengthSeconds'];
             $youtubeVideo->thumbnail = collect($playerResponse['videoDetails']['thumbnail']['thumbnails'])->pop()['url'];
             $youtubeVideo->streams = $youtubeVideoInfo['url_encoded_fmt_stream_map'];
+            $youtubeVideo->for_fd = $data['fd'];
             $youtubeVideo->save();
 
             // queue youtube video processing in queue job

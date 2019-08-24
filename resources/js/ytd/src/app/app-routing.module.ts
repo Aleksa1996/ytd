@@ -4,6 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 //components
 import { HomeComponent } from './components/home/home.component';
 import { ContactComponent } from './components/contact/contact.component';
+import { NotFoundComponent } from './components/not-found/not-found.component';
 
 
 const routes: Routes = [
@@ -26,7 +27,7 @@ const routes: Routes = [
   // { path: 'admin/section/:id', component: SectionEditFormComponent, canActivate: [AuthGuardService] },
   // { path: 'admin/user/new', component: UserEditFormComponent, canActivate: [AuthGuardService] },
   // { path: 'admin/user/:id', component: UserEditFormComponent, canActivate: [AuthGuardService] },
-  // { path: '**', component: NotfoundComponent }
+  { path: '**', component: NotFoundComponent }
 ];
 
 @NgModule({

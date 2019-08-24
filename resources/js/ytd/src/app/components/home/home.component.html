@@ -1,19 +1,37 @@
 <div class="main-banner-container position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light">
   <div class="main-banner col-md-6 p-lg-5 mx-auto">
-    <h1 class="display-4 font-weight-normal">YouTube videos to mp3</h1>
+    <h1 class="display-4 font-weight-normal">
+      YouTube videos to mp3
+    </h1>
     <p class="lead font-weight-normal">
-      Download high quality MP3 files with our YouTube to MP3 Converter. Convert any YouTube video in seconds. Simple,
+      Download high quality MP3 files with our YouTube to MP3 Converter.
+      Convert any YouTube video in seconds. Simple,
       fast and absolutely free!
     </p>
     <div>
       <form [formGroup]="convertForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
-          <input type="email" formControlName="link" type="text" [class.is-invalid]="isFieldInvalid('link')"
-            placeholder="https://youtube.com/link-to-video" class="form-control" id="link" />
+          <input formControlName="link" type="text" [class.is-invalid]="isFieldInvalid('link')" placeholder="https://youtube.com/link-to-video" class="form-control" id="link" />
         </div>
-        <button class="btn btn-lg btn-block btn-primary-c" [disabled]="!convertForm.valid" type="submit">
-          Convert
+        <button class="btn btn-lg btn-block btn-primary-c" [ngClass]="{'btn-on-progress': progress.show}" [disabled]="!convertForm.valid || progress.show" type="submit">
+
+          <div *ngIf="progress.show" class="progress">
+            <div class="progress-bar progress-bar-animated" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100" [style.width]="progress.percentage+'%'">
+              <span class="percentage-txt" [ngSwitch]="progress.type">
+                <ng-template [ngSwitchCase]="'preparation'">Preparing...</ng-template>
+                <ng-template [ngSwitchCase]="'video_download'">Downloading... {{ progress.percentage }}% </ng-template>
+                <ng-template [ngSwitchCase]="'video_convert'">Converting... {{ progress.percentage }}% </ng-template>
+                <ng-template [ngSwitchCase]="'video_finished'">Download starts in ({{ progress.timer }})...</ng-template>
+              </span>
+            </div>
+          </div>
+
+          <ng-template [ngIf]="!progress.show">
+            Convert
+          </ng-template>
+
         </button>
+        <!-- <fa-icon [icon]="faSyncAlt"></fa-icon> -->
         <!-- <fa-icon [icon]="faSyncAlt"></fa-icon> -->
         <!-- <a class="btn btn-outline-secondary" href="#">
           Convert <fa-icon [icon]="faSyncAlt"></fa-icon>

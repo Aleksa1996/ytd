@@ -1,5 +1,37 @@
 .main-banner-container {
   .main-banner {
     margin-bottom: 8rem;
+
+    form{
+      #link{
+        height: 40px;
+      }
+      .progress{
+        height: 45px;
+        .progress-bar{
+          animation-duration: 0.3s;
+          background-color:#ff793f;
+          font-size: 1.25rem;
+          .percentage-txt{
+            position: absolute;
+            left:50%;
+            transform:translateX(-50%);
+          }
+        }
+
+      }
+      .btn{
+        height:45px;
+        box-shadow: none;
+        outline:none;
+      }
+    }
+
   }
+}
+
+.btn-on-progress{
+  padding: 0px;
+  background: none;
+  border: none;
 }
