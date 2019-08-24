@@ -1,41 +1,56 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { Validators, FormBuilder } from '@angular/forms';
 import { YoutubevideoService } from 'src/app/services/youtubevideo.service';
 import { YoutubeVideo } from 'src/app/shared/YoutubeVideo';
 
-import { interval } from 'rxjs';
-import { delay, take, switchMap, mergeMap } from 'rxjs/operators';
+import { interval, Subject, pipe } from 'rxjs';
+import { takeUntil, delay } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
 })
-export class HomeComponent implements OnInit {
-
+export class HomeComponent implements OnInit, OnDestroy {
+  private unsubscribe = new Subject<void>();
   public faSyncAlt = faSyncAlt;
   public youtubeVideo: YoutubeVideo;
   public progress = {
     show: false,
     percentage: 0,
-    type: null,
-    timer: 0
+    type: null
   };
 
-  constructor(private fb: FormBuilder, private youtubevideoService: YoutubevideoService) { }
+  // @HostListener('window:beforeunload', ['event'])
+  // warnUser(event) {
+  //   $event.returnValue = true;
+  // }
+
+  /** TODO
+   *  1. Prikaz popularnih convertova (counter cuvati u bazi i za svaki video id inkrementovati)
+   *  2. Handleovanje kada korisnik izadje sa strane u toku convert-a
+   *  3. Brisanje videa i convertov-a na svakih 5 min sa storage-a
+   * */
+
+  constructor(private fb: FormBuilder, private youtubevideoService: YoutubevideoService) {}
 
   ngOnInit() {
     this.onVideoProcessingProgress();
   }
 
-  public onSubmit() {
+  ngOnDestroy() {
+    this.unsubscribe.next();
+    this.unsubscribe.complete();
+  }
 
+  public onSubmit() {
     this.updateProgress({ show: true, type: 'preparation' });
 
     // send request to convert and download video
     this.youtubevideoService
       .convertVideoFromUrl(this.convertForm.value.link)
+      // .pipe(delay(1000))
       .subscribe(r => {
         this.youtubeVideo = r.body;
       });
@@ -44,6 +59,7 @@ export class HomeComponent implements OnInit {
   public onVideoProcessingProgress() {
     this.youtubevideoService
       .onVideoProcessingProgress()
+      .pipe(takeUntil(this.unsubscribe))
       .subscribe(({ progress_type, progress, link, file, for_fd }) => {
         // update progress
         this.updateProgress({ show: true, type: progress_type, percentage: progress });
@@ -56,22 +72,14 @@ export class HomeComponent implements OnInit {
   }
 
   public download(link, fileName) {
-    this.youtubevideoService
-      .downloadMp3(link)
-      .subscribe(blob => {
-        this.youtubevideoService.forceBrowserToDownload(blob, fileName);
-        this.resetForm();
-      });
+    this.youtubevideoService.downloadMp3(link).subscribe(blob => {
+      this.youtubevideoService.forceBrowserToDownload(blob, fileName);
+      this.resetForm();
+    });
   }
 
   public convertForm = this.fb.group({
-    link: ['',
-      [
-        Validators.required,
-        Validators.minLength(3),
-        Validators.pattern('^https:\/\/(www\.youtube\.com\/watch\\?v=(.)+|youtu.be\/(.)+)$')
-      ]
-    ]
+    link: ['', [Validators.required, Validators.minLength(3), Validators.pattern('^https://(www.youtube.com/watch\\?v=(.)+|youtu.be/(.)+)$')]]
   });
 
   public isFieldInvalid(fieldName: string) {
@@ -87,9 +95,10 @@ export class HomeComponent implements OnInit {
   public resetForm() {
     this.convertForm.reset();
     this.updateProgress();
+    this.youtubeVideo = null;
   }
 
-  public updateProgress({ show = false, percentage = 0, type = null, timer = 0 } = {}) {
-    this.progress = { show, percentage, type, timer };
+  public updateProgress({ show = false, percentage = 0, type = null } = {}) {
+    this.progress = { show, percentage, type };
   }
 }

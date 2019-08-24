@@ -1,36 +1,51 @@
-.main-banner-container {
-  .main-banner {
+.home-banner-container {
+  height: 580px;
+
+  .home-banner {
     margin-bottom: 8rem;
 
-    form{
-      #link{
-        height: 40px;
-      }
-      .progress{
-        height: 45px;
-        .progress-bar{
-          animation-duration: 0.3s;
-          background-color:#ff793f;
-          font-size: 1.25rem;
-          .percentage-txt{
-            position: absolute;
-            left:50%;
-            transform:translateX(-50%);
-          }
-        }
-
-      }
-      .btn{
-        height:45px;
-        box-shadow: none;
-        outline:none;
+    .home-banner-info {
+      height: 215px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      .youtube-video-thumbnail {
+        width: 300px;
       }
     }
 
+    .home-banner-form {
+      #link {
+        height: 40px;
+      }
+
+      .progress {
+        height: 45px;
+
+        .progress-bar {
+          animation-duration: 0.3s;
+          background-color: #ff793f;
+          font-size: 1.25rem;
+
+          .percentage-txt {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+          }
+        }
+      }
+
+      .btn {
+        height: 45px;
+        box-shadow: none;
+        outline: none;
+      }
+    }
   }
 }
 
-.btn-on-progress{
+.btn-on-progress {
   padding: 0px;
   background: none;
   border: none;
