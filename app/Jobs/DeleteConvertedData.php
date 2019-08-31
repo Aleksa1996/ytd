@@ -50,6 +50,7 @@ class DeleteConvertedData implements ShouldQueue
         // query db to get all videos that are converted 5 mins ago or more
         $convertsToDelete = YoutubeVideo::whereRaw('TIMESTAMPDIFF(MINUTE, updated_at, ?) >= 5 ', [Carbon::now()])
             ->whereIn('videoId', $allConvertFolderNames->toArray())
+            ->where('status', 'finished')
             ->get('videoId');
 
         // remove directories

@@ -20,7 +20,7 @@ services:
     volumes:
       - './:/var/www/html'
     restart: unless-stopped
-    command: bash -c "rm -f /var/www/html/storage/logs/swoole_http.pid && php /var/www/html/artisan swoole:http start"
+    command: bash -c "rm -f /var/www/html/storage/logs/swoole_http.pid && cron && php /var/www/html/artisan swoole:http start"
     depends_on:
       - mysql
       - redis

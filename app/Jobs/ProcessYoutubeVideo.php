@@ -36,10 +36,6 @@ class ProcessYoutubeVideo implements ShouldQueue
      */
     public function handle()
     {
-        // CfihYWRWRTQ // john newman - ciphered
-        // omjnFuAd_sw // mudja - not ciphered
-        // 6-g0jxauBJg // VEVO - MULTIPLE STREAMS
-
         // start timer
         $start = \microtime(true);
 
@@ -62,6 +58,7 @@ class ProcessYoutubeVideo implements ShouldQueue
         // parse the stream
         parse_str($videoStream, $parsedStream);
 
+        // create corutine
         go(function () use ($that, $parsedStream) {
             // init websocket connection
             $websocketClient = new WebsocketClient('swoole', 1215);
@@ -108,12 +105,17 @@ class ProcessYoutubeVideo implements ShouldQueue
                 ]);
             });
 
+            // push message to backend that we finished with converting video
             $websocketClient->push('VIDEO_PROCESSING_PROGRESS_B', [
                 'progress_type' => 'video_finished',
                 'link' => asset('/static/' . $this->youtubeVideo->videoId . '/' . $fileName . '.mp3'),
                 'file' =>  $fileName . '.mp3',
                 'for_fd' => $that->youtubeVideo->for_fd
             ]);
+
+            // update status of video
+            $that->youtubeVideo->status = 'finished';
+            $that->youtubeVideo->save();
         });
 
         \Swoole\Event::wait();

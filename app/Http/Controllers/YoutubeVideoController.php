@@ -84,6 +84,8 @@ class YoutubeVideoController extends Controller
                 $youtubeVideo->number_of_requests++;
             }
 
+            $youtubeVideo->status = 'converting';
+
             if (!$youtubeVideo->save()) {
                 throw new \Exception('Failed to save video in database!');
             }

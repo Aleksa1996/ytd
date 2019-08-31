@@ -23,6 +23,7 @@ class CreateYoutubeVideosTable extends Migration
             $table->text('streams');
             $table->integer('for_fd');
 
+            $table->enum('status', ['converting', 'finished']);
             $table->integer('number_of_requests')->default(0);
 
             $table->timestamps();
