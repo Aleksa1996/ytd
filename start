@@ -4,3 +4,5 @@ cd /var/www/html/youtubedownloader/resources/js/ytd/ && nvm use 12.3.0 && ng ser
 
 # NPM INSTALL ON VM
     --no-bin-links
+
+* * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1

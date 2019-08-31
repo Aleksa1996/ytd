@@ -51,10 +51,11 @@ class YoutubeVideoController extends Controller
             // get video info by video id
             $youtubeVideoInfo = YoutubeVideoUtils::getVideoInfo($data['video_id']);
 
-            if (empty($youtubeVideoInfo
-                || !isset($youtubeVideoInfo['player_response'])
-                || !isset($youtubeVideoInfo['url_encoded_fmt_stream_map'])
-                || empty($youtubeVideoInfo['url_encoded_fmt_stream_map']))) {
+            if (
+                empty($youtubeVideoInfo)
+                || empty($youtubeVideoInfo['player_response'])
+                || empty($youtubeVideoInfo['url_encoded_fmt_stream_map'])
+            ) {
                 throw new \Exception('Failed to get video info!');
             }
 
@@ -66,20 +67,31 @@ class YoutubeVideoController extends Controller
                 throw new \Exception('Failed to get video info!');
             }
 
+            // try to find existing one
+            $youtubeVideo = YoutubeVideo::findByVideoId($playerResponse['videoDetails']['videoId']);
+
             // save video info in db
-            $youtubeVideo = new YoutubeVideo();
-            $youtubeVideo->videoId = $playerResponse['videoDetails']['videoId'];
-            $youtubeVideo->title = $playerResponse['videoDetails']['title'];
-            $youtubeVideo->lengthSeconds = $playerResponse['videoDetails']['lengthSeconds'];
-            $youtubeVideo->thumbnail = collect($playerResponse['videoDetails']['thumbnail']['thumbnails'])->pop()['url'];
-            $youtubeVideo->streams = $youtubeVideoInfo['url_encoded_fmt_stream_map'];
-            $youtubeVideo->for_fd = $data['fd'];
-            $youtubeVideo->save();
+            if (empty($youtubeVideo)) {
+                $youtubeVideo = new YoutubeVideo();
+                $youtubeVideo->videoId = $playerResponse['videoDetails']['videoId'];
+                $youtubeVideo->title = $playerResponse['videoDetails']['title'];
+                $youtubeVideo->lengthSeconds = $playerResponse['videoDetails']['lengthSeconds'];
+                $youtubeVideo->thumbnail = collect($playerResponse['videoDetails']['thumbnail']['thumbnails'])->pop()['url'];
+                $youtubeVideo->streams = $youtubeVideoInfo['url_encoded_fmt_stream_map'];
+                $youtubeVideo->for_fd = $data['fd'];
+                $youtubeVideo->number_of_requests = 1;
+            } else {
+                $youtubeVideo->number_of_requests++;
+            }
+
+            if (!$youtubeVideo->save()) {
+                throw new \Exception('Failed to save video in database!');
+            }
 
             // queue youtube video processing in queue job
             ProcessYoutubeVideo::dispatch($youtubeVideo);
 
-            return response()->json(new YoutubeVideoResource($youtubeVideo), 201);
+            return response()->json(new YoutubeVideoResource($youtubeVideo), 200);
         } catch (\Exception $e) {
             Log::debug($e->getMessage());
             throw new GeneralException('Failed to get video info!');

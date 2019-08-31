@@ -28,12 +28,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   // }
 
   /** TODO
-   *  1. Prikaz popularnih convertova (counter cuvati u bazi i za svaki video id inkrementovati)
+   *  1. Prikaz popularnih convertova
    *  2. Handleovanje kada korisnik izadje sa strane u toku convert-a
-   *  3. Brisanje videa i convertov-a na svakih 5 min sa storage-a
    * */
 
-  constructor(private fb: FormBuilder, private youtubevideoService: YoutubevideoService) {}
+  constructor(private fb: FormBuilder, private youtubevideoService: YoutubevideoService) { }
 
   ngOnInit() {
     this.onVideoProcessingProgress();
@@ -72,14 +71,20 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   public download(link, fileName) {
-    this.youtubevideoService.downloadMp3(link).subscribe(blob => {
-      this.youtubevideoService.forceBrowserToDownload(blob, fileName);
-      this.resetForm();
-    });
+    this.youtubevideoService
+      .downloadMp3(link)
+      .subscribe(blob => {
+        this.youtubevideoService.forceBrowserToDownload(blob, fileName);
+        this.resetForm();
+      });
   }
 
   public convertForm = this.fb.group({
-    link: ['', [Validators.required, Validators.minLength(3), Validators.pattern('^https://(www.youtube.com/watch\\?v=(.)+|youtu.be/(.)+)$')]]
+    link: ['', [
+      Validators.required,
+      Validators.minLength(3),
+      Validators.pattern('^https://(www.youtube.com/watch\\?v=(.)+|youtu.be/(.)+)$')
+    ]]
   });
 
   public isFieldInvalid(fieldName: string) {
