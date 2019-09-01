@@ -25,6 +25,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   };
   public youtubeVideos: YoutubeVideo[];
 
+
   // @HostListener('window:beforeunload', ['event'])
   // warnUser(event) {
   //   return false;
