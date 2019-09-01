@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Comfortaa&display=swap');
-@import url("https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css");
-
-$primary-color:#ff793f;
+@import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.min.css');
+$primary-color: #ff793f;
 
 $secondary-color: #212529;
 $secondary-color-shade: #444d55;
@@ -17,7 +17,7 @@ html {
       background-color: #fff;
       border-color: #ff9466;
       outline: 0;
-      box-shadow: 0 0 0 0.2rem rgba(255, 121, 63, .25);
+      box-shadow: 0 0 0 0.2rem rgba(255, 121, 63, 0.25);
     }
 
     button:disabled {
@@ -26,14 +26,11 @@ html {
     }
 
     .required-asterisk:after {
-      content: "*";
+      content: '*';
       color: red;
     }
   }
 }
-
-
-
 
 .container {
   max-width: 960px;
@@ -60,14 +57,14 @@ html {
  */
 
 .site-header {
-  background-color: rgba(0, 0, 0, .85);
+  background-color: rgba(0, 0, 0, 0.85);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   backdrop-filter: saturate(180%) blur(20px);
 }
 
 .site-header a {
   color: #eee;
-  transition: ease-in-out color .15s;
+  transition: ease-in-out color 0.15s;
 }
 
 .site-header a:hover {
@@ -97,8 +94,8 @@ html {
   right: 10px;
   bottom: 10%;
   left: 10px;
-  content: "";
-  background-color: rgba(255, 255, 255, .1);
+  content: '';
+  background-color: rgba(255, 255, 255, 0.1);
   border-radius: 5px;
 }
 
@@ -110,18 +107,17 @@ html {
   background-color: #e5e5e5;
 }
 
-
 /*
  * Extra utilities
  */
 
-.flex-equal>* {
+.flex-equal > * {
   -ms-flex: 1;
   flex: 1;
 }
 
 @media (min-width: 768px) {
-  .flex-md-equal>* {
+  .flex-md-equal > * {
     -ms-flex: 1;
     flex: 1;
   }

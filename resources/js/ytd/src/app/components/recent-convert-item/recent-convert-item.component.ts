@@ -1,5 +1,6 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { YoutubeVideo } from 'src/app/shared/YoutubeVideo';
+import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-recent-convert-item',
@@ -9,12 +10,12 @@ import { YoutubeVideo } from 'src/app/shared/YoutubeVideo';
 export class RecentConvertItemComponent implements OnInit {
 
   @Input() youtubeVideo: YoutubeVideo;
-  @Input() index: number;
+
+  public faSyncAlt = faSyncAlt;
 
   constructor() { }
 
   ngOnInit() {
-    console.log(this.youtubeVideo);
   }
 
 }

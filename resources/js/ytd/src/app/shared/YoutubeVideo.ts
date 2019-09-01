@@ -8,6 +8,7 @@ export class YoutubeVideo {
         private lengthSeconds,
         private thumbnail,
         private requested,
+        private lastRequest,
         private status,
     ) { }
 

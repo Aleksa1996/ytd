@@ -40,6 +40,11 @@
         height: 45px;
         box-shadow: none;
         outline: none;
+        position: relative;
+        overflow: hidden;
+        .animated.fadeInUp {
+          animation-duration: 0.5s;
+        }
       }
     }
   }

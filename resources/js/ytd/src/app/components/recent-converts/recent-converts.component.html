@@ -1,6 +1,5 @@
-<ng-container *ngFor="let youtubeVideo of youtubeVideos; let i = index; let isOdd = odd; let isEven = even">
-  <div *ngIf="isEven" class="d-md-flex flex-md-equal w-100 my-md-3 pl-md-3">
-    <app-recent-convert-item [youtubeVideo]="youtubeVideo" [index]="i"> </app-recent-convert-item>
-    <app-recent-convert-item [youtubeVideo]="youtubeVideos[i + 1]" [index]="i + 1"></app-recent-convert-item>
-  </div>
-</ng-container>
+<div class="card-group my-3">
+  <ng-container *ngFor="let youtubeVideo of youtubeVideos; let i = index; let isOdd = odd; let isEven = even">
+    <app-recent-convert-item class="d-flex col-xl-3 col-lg-5 col-md-6 col-sm-6 col-12 align-items-stretch" [youtubeVideo]="youtubeVideo"> </app-recent-convert-item>
+  </ng-container>
+</div>

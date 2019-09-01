@@ -33,15 +33,15 @@
             </div>
           </div>
 
-          <ng-template [ngIf]="!progress.show">
+          <ng-template [ngIf]="!progress.show && !convertForm.valid">
             Convert
           </ng-template>
+          <ng-template [ngIf]="!progress.show && convertForm.valid">
+            <div class="animated fadeInUp">
+              <fa-icon [icon]="faSyncAlt"></fa-icon>
+            </div>
+          </ng-template>
         </button>
-        <!-- <fa-icon [icon]="faSyncAlt"></fa-icon> -->
-        <!-- <fa-icon [icon]="faSyncAlt"></fa-icon> -->
-        <!-- <a class="btn btn-outline-secondary" href="#">
-          Convert <fa-icon [icon]="faSyncAlt"></fa-icon>
-        </a> -->
       </form>
     </div>
   </div>

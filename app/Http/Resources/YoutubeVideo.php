@@ -21,6 +21,7 @@ class YoutubeVideo extends JsonResource
             'lengthSeconds' => $this->lengthSeconds,
             'thumbnail' => $this->thumbnail,
             'requested' => $this->number_of_requests,
+            'lastRequest' => $this->updated_at->diffForHumans(),
             'status' => $this->areAllRequestsFinished() ? 'finished' : 'converting'
         ];
     }

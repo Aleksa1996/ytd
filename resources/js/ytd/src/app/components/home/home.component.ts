@@ -30,8 +30,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   // }
 
   /** TODO
-   *  1. Prikaz popularnih convertova | can activate and deactivate
-   *  2. Handleovanje kada korisnik izadje sa strane u toku convert-a
+   *  2. Handleovanje kada korisnik izadje sa strane u toku convert-a | uraditi sa confirm dialogom i can activate and deactivate ROUTE
    * */
 
   constructor(private route: ActivatedRoute, private fb: FormBuilder, private youtubevideoService: YoutubevideoService) { }
