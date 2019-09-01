@@ -5,8 +5,9 @@ import { YoutubevideoService } from 'src/app/services/youtubevideo.service';
 import { YoutubeVideo } from 'src/app/shared/YoutubeVideo';
 import { ActivatedRoute } from '@angular/router';
 
-import { interval, Subject, pipe } from 'rxjs';
+import { Subject } from 'rxjs';
 import { takeUntil, delay } from 'rxjs/operators';
+import { DialogService } from 'src/app/services/dialog.service';
 
 @Component({
   selector: 'app-home',
@@ -26,14 +27,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // @HostListener('window:beforeunload', ['event'])
   // warnUser(event) {
-  //   $event.returnValue = true;
+  //   return false;
   // }
 
-  /** TODO
-   *  2. Handleovanje kada korisnik izadje sa strane u toku convert-a | uraditi sa confirm dialogom i can activate and deactivate ROUTE
-   * */
-
-  constructor(private route: ActivatedRoute, private fb: FormBuilder, private youtubevideoService: YoutubevideoService) { }
+  constructor(private route: ActivatedRoute, private fb: FormBuilder, private youtubevideoService: YoutubevideoService, public dialogService: DialogService) { }
 
   ngOnInit() {
     this.onVideoProcessingProgress();
