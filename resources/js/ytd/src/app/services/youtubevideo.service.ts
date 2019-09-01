@@ -15,7 +15,11 @@ export class YoutubevideoService {
 
   public convertVideoFromUrl(link: string): Observable<HttpResponse<YoutubeVideo>> {
     const video_id = YoutubeVideo.getVideoIdByLink(link);
-    return this.http.post<YoutubeVideo>('/api/v1/convert', { video_id, fd: this.socketService.getFd() }, { observe: 'response' });
+    return this.http.post<YoutubeVideo>('/api/v1/videos/convert', { video_id, fd: this.socketService.getFd() }, { observe: 'response' });
+  }
+
+  public getPopularConverts(): Observable<YoutubeVideo[]> {
+    return this.http.get<YoutubeVideo[]>('/api/v1/videos');
   }
 
   public onVideoProcessingProgress() {

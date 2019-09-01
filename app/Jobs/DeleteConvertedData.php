@@ -5,11 +5,10 @@ namespace App\Jobs;
 use App\YoutubeVideo;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Storage;
 
 class DeleteConvertedData implements ShouldQueue
 {
@@ -37,7 +36,7 @@ class DeleteConvertedData implements ShouldQueue
         // get all directories on this path
         $allConvertFolderPaths = Storage::directories($convertsPath);
 
-        // if there are now directories quit the job
+        // if there are no directories quit the job
         if (empty($allConvertFolderPaths)) {
             return;
         }
@@ -47,11 +46,8 @@ class DeleteConvertedData implements ShouldQueue
             return basename($path);
         });
 
-        // query db to get all videos that are converted 5 mins ago or more
-        $convertsToDelete = YoutubeVideo::whereRaw('TIMESTAMPDIFF(MINUTE, updated_at, ?) >= 5 ', [Carbon::now()])
-            ->whereIn('videoId', $allConvertFolderNames->toArray())
-            ->where('status', 'finished')
-            ->get('videoId');
+        // query db to get all videos that are converted 4 mins ago or more
+        $convertsToDelete = YoutubeVideo::getFinishedVideos($allConvertFolderNames->toArray());
 
         // remove directories
         $convertsToDelete->each(function ($video) use ($convertsPath) {

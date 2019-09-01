@@ -6,7 +6,9 @@ export class YoutubeVideo {
         private title,
         private videoId,
         private lengthSeconds,
-        private thumbnail
+        private thumbnail,
+        private requested,
+        private status,
     ) { }
 
     public static getVideoIdByLink(link: string): string {

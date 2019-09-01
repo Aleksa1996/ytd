@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\YoutubeVideo;
+use App\YoutubeConvert;
 use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
 use App\Classes\WebsocketClient;
@@ -17,16 +18,29 @@ class ProcessYoutubeVideo implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * Youtube video
+     *
+     * @var YoutubeVideo
+     */
     protected $youtubeVideo;
+
+    /**
+     * Youtube convert request
+     *
+     * @var YoutubeConvert
+     */
+    protected $youtubeConvert;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(YoutubeVideo $youtubeVideo)
+    public function __construct(YoutubeConvert $youtubeConvert)
     {
-        $this->youtubeVideo = $youtubeVideo;
+        $this->youtubeConvert = $youtubeConvert;
+        $this->youtubeVideo = $youtubeConvert->video;
     }
 
     /**
@@ -67,7 +81,7 @@ class ProcessYoutubeVideo implements ShouldQueue
             $websocketClient->push('VIDEO_PROCESSING_PROGRESS_B', [
                 'progress_type' => 'preparation',
                 'progress' => -1,
-                'for_fd' => $that->youtubeVideo->for_fd
+                'for_fd' => $that->youtubeConvert->for_fd
             ]);
 
             // get signature if video is protected with cipher
@@ -91,7 +105,7 @@ class ProcessYoutubeVideo implements ShouldQueue
                 $websocketClient->push('VIDEO_PROCESSING_PROGRESS_B', [
                     'progress_type' => 'video_download',
                     'progress' => $percentage,
-                    'for_fd' => $that->youtubeVideo->for_fd
+                    'for_fd' => $that->youtubeConvert->for_fd
                 ]);
             });
 
@@ -101,7 +115,7 @@ class ProcessYoutubeVideo implements ShouldQueue
                 $websocketClient->push('VIDEO_PROCESSING_PROGRESS_B', [
                     'progress_type' => 'video_convert',
                     'progress' => $percentage,
-                    'for_fd' => $that->youtubeVideo->for_fd
+                    'for_fd' => $that->youtubeConvert->for_fd
                 ]);
             });
 
@@ -110,12 +124,12 @@ class ProcessYoutubeVideo implements ShouldQueue
                 'progress_type' => 'video_finished',
                 'link' => asset('/static/' . $this->youtubeVideo->videoId . '/' . $fileName . '.mp3'),
                 'file' =>  $fileName . '.mp3',
-                'for_fd' => $that->youtubeVideo->for_fd
+                'for_fd' => $that->youtubeConvert->for_fd
             ]);
 
             // update status of video
-            $that->youtubeVideo->status = 'finished';
-            $that->youtubeVideo->save();
+            $that->youtubeConvert->status = 'finished';
+            $that->youtubeConvert->save();
         });
 
         \Swoole\Event::wait();

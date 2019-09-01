@@ -3,14 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\YoutubeVideo;
-use App\Jobs\ProcessYoutubeVideo;
-use App\Classes\YoutubeVideoUtils;
-use App\Exceptions\GeneralException;
-use App\Http\Resources\YoutubeVideo as YoutubeVideoResource;
-
+use App\YoutubeConvert;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Jobs\ProcessYoutubeVideo;
+
+use App\Classes\YoutubeVideoUtils;
 use Illuminate\Support\Facades\Log;
+use App\Exceptions\GeneralException;
+use App\Http\Resources\YoutubeVideo as YoutubeVideoResource;
 
 class YoutubeVideoController extends Controller
 {
@@ -21,7 +22,11 @@ class YoutubeVideoController extends Controller
      */
     public function index()
     {
-        //
+        $videos = YoutubeVideo::popular()
+            ->limit(4)
+            ->get();
+
+        return YoutubeVideoResource::collection($videos);
     }
 
     /**
@@ -48,50 +53,58 @@ class YoutubeVideoController extends Controller
         $data['video_format'] = $data['video_format'] ?? 'video/mp4';
 
         try {
-            // get video info by video id
-            $youtubeVideoInfo = YoutubeVideoUtils::getVideoInfo($data['video_id']);
 
-            if (
-                empty($youtubeVideoInfo)
-                || empty($youtubeVideoInfo['player_response'])
-                || empty($youtubeVideoInfo['url_encoded_fmt_stream_map'])
-            ) {
-                throw new \Exception('Failed to get video info!');
-            }
+            // try to find existing video
+            $youtubeVideo = YoutubeVideo::findByVideoId($data['video_id']);
 
-            // get player response in json format and decode it
-            $playerResponse = json_decode($youtubeVideoInfo['player_response'], true);
-
-            // check if we corretcly decoded player response
-            if ($playerResponse === null && json_last_error() !== JSON_ERROR_NONE) {
-                throw new \Exception('Failed to get video info!');
-            }
-
-            // try to find existing one
-            $youtubeVideo = YoutubeVideo::findByVideoId($playerResponse['videoDetails']['videoId']);
-
-            // save video info in db
             if (empty($youtubeVideo)) {
+                // get video info by video id
+                $youtubeVideoInfo = YoutubeVideoUtils::getVideoInfo($data['video_id']);
+
+                // do some checks
+                if (
+                    empty($youtubeVideoInfo)
+                    || empty($youtubeVideoInfo['player_response'])
+                    || empty($youtubeVideoInfo['url_encoded_fmt_stream_map'])
+                ) {
+                    throw new \Exception('Failed to get video info!');
+                }
+
+                // get player response in json format and decode it
+                $playerResponse = @json_decode($youtubeVideoInfo['player_response'], true);
+
+                // check if we corretcly decoded player response
+                if ($playerResponse === null && json_last_error() !== JSON_ERROR_NONE) {
+                    throw new \Exception('Failed to get video info!');
+                }
+
+                // save video info in db
                 $youtubeVideo = new YoutubeVideo();
                 $youtubeVideo->videoId = $playerResponse['videoDetails']['videoId'];
                 $youtubeVideo->title = $playerResponse['videoDetails']['title'];
                 $youtubeVideo->lengthSeconds = $playerResponse['videoDetails']['lengthSeconds'];
                 $youtubeVideo->thumbnail = collect($playerResponse['videoDetails']['thumbnail']['thumbnails'])->pop()['url'];
                 $youtubeVideo->streams = $youtubeVideoInfo['url_encoded_fmt_stream_map'];
-                $youtubeVideo->for_fd = $data['fd'];
-                $youtubeVideo->number_of_requests = 1;
-            } else {
-                $youtubeVideo->number_of_requests++;
+                $youtubeVideo->number_of_requests = 0;
             }
 
-            $youtubeVideo->status = 'converting';
+            // set new requested count
+            $youtubeVideo->number_of_requests++;
 
+            // save it
             if (!$youtubeVideo->save()) {
                 throw new \Exception('Failed to save video in database!');
             }
 
+            // create and save new convert request
+            $youtubeConvert  = new YoutubeConvert();
+            $youtubeConvert->ip = $request->ip();
+            $youtubeConvert->status = 'converting';
+            $youtubeConvert->for_fd = $data['fd'];
+            $youtubeVideo->converts()->save($youtubeConvert);
+
             // queue youtube video processing in queue job
-            ProcessYoutubeVideo::dispatch($youtubeVideo);
+            ProcessYoutubeVideo::dispatch($youtubeConvert);
 
             return response()->json(new YoutubeVideoResource($youtubeVideo), 200);
         } catch (\Exception $e) {

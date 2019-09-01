@@ -6,9 +6,10 @@ import { HomeComponent } from './components/home/home.component';
 import { ContactComponent } from './components/contact/contact.component';
 import { NotFoundComponent } from './components/not-found/not-found.component';
 
+import { HomeResolverService } from './services/home-resolver.service';
 
 const routes: Routes = [
-  { path: '', component: HomeComponent },
+  { path: '', component: HomeComponent, resolve: { youtubeVideos: HomeResolverService } },
   { path: 'contact', component: ContactComponent },
 
   // { path: 'user/:id', component: UserComponent },

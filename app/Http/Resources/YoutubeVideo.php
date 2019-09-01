@@ -20,6 +20,8 @@ class YoutubeVideo extends JsonResource
             'videoId' => $this->videoId,
             'lengthSeconds' => $this->lengthSeconds,
             'thumbnail' => $this->thumbnail,
+            'requested' => $this->number_of_requests,
+            'status' => $this->areAllRequestsFinished() ? 'finished' : 'converting'
         ];
     }
 }

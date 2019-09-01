@@ -3,6 +3,7 @@ import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 import { Validators, FormBuilder } from '@angular/forms';
 import { YoutubevideoService } from 'src/app/services/youtubevideo.service';
 import { YoutubeVideo } from 'src/app/shared/YoutubeVideo';
+import { ActivatedRoute } from '@angular/router';
 
 import { interval, Subject, pipe } from 'rxjs';
 import { takeUntil, delay } from 'rxjs/operators';
@@ -21,6 +22,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     percentage: 0,
     type: null
   };
+  public youtubeVideos: YoutubeVideo[];
 
   // @HostListener('window:beforeunload', ['event'])
   // warnUser(event) {
@@ -28,14 +30,17 @@ export class HomeComponent implements OnInit, OnDestroy {
   // }
 
   /** TODO
-   *  1. Prikaz popularnih convertova
+   *  1. Prikaz popularnih convertova | can activate and deactivate
    *  2. Handleovanje kada korisnik izadje sa strane u toku convert-a
    * */
 
-  constructor(private fb: FormBuilder, private youtubevideoService: YoutubevideoService) { }
+  constructor(private route: ActivatedRoute, private fb: FormBuilder, private youtubevideoService: YoutubevideoService) { }
 
   ngOnInit() {
     this.onVideoProcessingProgress();
+    this.route.data.subscribe(({ youtubeVideos }) => {
+      this.youtubeVideos = youtubeVideos.data;
+    });
   }
 
   ngOnDestroy() {

@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { Convert } from 'src/app/shared/Convert';
+import { YoutubeVideo } from 'src/app/shared/YoutubeVideo';
 
 @Component({
   selector: 'app-recent-convert-item',
@@ -8,12 +8,13 @@ import { Convert } from 'src/app/shared/Convert';
 })
 export class RecentConvertItemComponent implements OnInit {
 
-  @Input() convert: Convert;
+  @Input() youtubeVideo: YoutubeVideo;
   @Input() index: number;
 
   constructor() { }
 
   ngOnInit() {
+    console.log(this.youtubeVideo);
   }
 
 }
