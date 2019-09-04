@@ -6,3 +6,13 @@ cd /var/www/html/youtubedownloader/resources/js/ytd/ && nvm use 12.3.0 && ng ser
     --no-bin-links
 
 * * * * * cd /var/www/html && /usr/local/bin/php artisan schedule:run >> /dev/null 2>&1
+
+
+
+docker-compose --compatibility up -d
+
+deploy:
+      resources:
+        limits:
+          cpus: '0.001'
+          memory: 50M

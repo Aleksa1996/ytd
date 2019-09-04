@@ -46,8 +46,13 @@ services:
       - './resources/js/ytd:/var/www/html'
       - '/var/www/html/node_modules'
     restart: unless-stopped
-    # command: bash -c "npm run build:ssr && npm run serve:ssr"
-    command: ng serve --host 0.0.0.0 --disable-host-check --poll 2000 --port 4200
+    command: bash -c "npm run build:ssr && npm run serve:ssr"
+    # command: ng serve --host 0.0.0.0 --disable-host-check --poll 2000 --port 4200
+    deploy:
+      resources:
+        limits:
+          cpus: '0.7'
+          memory: 500M
 
   mysql:
     image: 'mysql:5.7'
