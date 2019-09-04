@@ -1,6 +1,5 @@
 cd /var/www/html/youtubedownloader/ && php artisan swoole:http start
 
-
 cd /var/www/html/youtubedownloader/resources/js/ytd/ && nvm use 12.3.0 && ng serve --host 127.0.0.1  --disable-host-check --poll 2000
 
 # NPM INSTALL ON VM
