@@ -1,9 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 import { YoutubeVideo } from '../shared/YoutubeVideo';
 import { SocketService } from './socket.service';
+
+
+import { PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser, isPlatformServer } from '@angular/common';
+import { environment } from 'src/environments/environment';
 
 
 @Injectable({
@@ -11,15 +16,19 @@ import { SocketService } from './socket.service';
 })
 export class YoutubevideoService {
 
-  constructor(private http: HttpClient, private socketService: SocketService) { }
+  public isServerSide;
+
+  constructor(private http: HttpClient, private socketService: SocketService, @Inject(PLATFORM_ID) private platformId: Object) {
+    this.isServerSide = isPlatformServer(this.platformId);
+  }
 
   public convertVideoFromUrl(link: string): Observable<HttpResponse<YoutubeVideo>> {
     const video_id = YoutubeVideo.getVideoIdByLink(link);
-    return this.http.post<YoutubeVideo>('/api/v1/videos/convert', { video_id, fd: this.socketService.getFd() }, { observe: 'response' });
+    return this.http.post<YoutubeVideo>(`${environment.apiUrl}/api/v1/videos/convert`, { video_id, fd: this.socketService.getFd() }, { observe: 'response' });
   }
 
   public getPopularConverts(): Observable<YoutubeVideo[]> {
-    return this.http.get<YoutubeVideo[]>('/api/v1/videos');
+    return this.http.get<YoutubeVideo[]>(`${environment.apiUrl}/api/v1/videos`);
   }
 
   public onVideoProcessingProgress() {
@@ -32,6 +41,9 @@ export class YoutubevideoService {
 
 
   public forceBrowserToDownload(blob, fileName) {
+    if (this.isServerSide) {
+      return;
+    }
     // It is necessary to create a new blob object with mime-type explicitly set
     // otherwise only Chrome works like it should
     const newBlob = new Blob([blob], { type: 'audio/mpeg' });

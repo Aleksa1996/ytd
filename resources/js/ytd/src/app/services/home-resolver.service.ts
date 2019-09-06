@@ -4,8 +4,7 @@ import {
   RouterStateSnapshot,
   ActivatedRouteSnapshot
 } from '@angular/router';
-import { Observable, of, EMPTY } from 'rxjs';
-import { mergeMap, take } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 import { YoutubevideoService } from './youtubevideo.service';
 import { YoutubeVideo } from '../shared/YoutubeVideo';

@@ -4,7 +4,8 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://dev.ytd.com:8080/'
+  apiUrl: 'http://dev.ytd.com:8080',
+  backendUrl: 'http://nginx'
 };
 
 /*
