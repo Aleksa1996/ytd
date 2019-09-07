@@ -1,3 +1,7 @@
 /mysql/data
 /nginx/logs
 /supervisor/conf.d/supervisord.log
+/mysql/*
+/nginx/*
+/supervisor/*
+/redis-default.conf
